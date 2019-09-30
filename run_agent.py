@@ -1,31 +1,32 @@
 import zmq
+import threading
 import logging
-import uuid
 from bfg.args import bfg_args
 from bfg.agent.registration import register
-from bfg.agent.task_puller import TaskPuller
+from bfg.agent.task_puller import TaskHandler
 from bfg.agent.status_sender import StatusSender
+from bfg.agent.state import State
 
-args = bfg_args().parse_args()
-IDENTITY = str(uuid.uuid1()).encode('UTF-8')
-
-logger = logging.Logger(__name__)
-
-CONTROLLER_HOST = args.controller_host
-REGISTRATOR_PORT = args.registrator_port
-TASKPUSHER_PORT = args.task_port
-POLLER_PORT = args.poller_port
-
-CONTEXT = zmq.Context()
 
 def main():
-    register(IDENTITY, CONTEXT, CONTROLLER_HOST, REGISTRATOR_PORT)
+    args = bfg_args().parse_args()
+    controller_host = args.controller_host
+    registrator_port = args.registrator_port
+    taskpusher_port = args.task_port
+    poller_port = args.poller_port
 
-    task_pusher = TaskPuller(CONTEXT, CONTROLLER_HOST, TASKPUSHER_PORT)
+    logger = logging.Logger(__name__)
+    context = zmq.Context()
+    state = State()
+
+    lock = threading.Lock()
+    register(lock, state, context, controller_host, registrator_port)
+
+    task_pusher = TaskHandler(lock, state, context, controller_host, taskpusher_port)
     task_pusher.start()
 
-    agent_poller = StatusSender(IDENTITY, CONTEXT, CONTROLLER_HOST, POLLER_PORT)
-    agent_poller.start()
+    status_sender = StatusSender(lock, state, context, controller_host, poller_port)
+    status_sender.start()
 
 
 if __name__ == "__main__":
