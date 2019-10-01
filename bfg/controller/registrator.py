@@ -1,17 +1,17 @@
 import threading
 import zmq
 from bfg.utils.messages import REGISTRATION
-from bfg.controller.agents import Agents
+from bfg.controller.state import State
 
 
 class Registrator(threading.Thread):
 
-    def __init__(self, lock: threading.Lock, context: zmq.Context, port, agents: Agents):
+    def __init__(self, lock: threading.Lock, context: zmq.Context, port, state: State):
         threading.Thread.__init__(self)
         self.lock = lock
         self.context = context
         self.port = port
-        self.agents = agents
+        self.state = state
 
     def run(self):
         registrator = self.context.socket(zmq.REP)
@@ -21,7 +21,7 @@ class Registrator(threading.Thread):
             [type, identity, message] = registrator.recv_multipart()
             if type == REGISTRATION:
                 self.lock.acquire()
-                self.agents.add_agent(identity)
+                self.state.add_agent(identity)
                 self.lock.release()
             else:
                 print(f"Unexpected message recieved by registrator: {type}, {identity}, {message}")

@@ -1,18 +1,17 @@
 import threading
 import zmq
 import time
-from bfg.utils.messages import START_TEST, CLONE
-from bfg.controller.agents import Agents
+from bfg.controller.state import State
 
 
 class TaskPusher(threading.Thread):
 
-    def __init__(self, lock: threading.Lock, context: zmq.Context, port, agents: Agents):
+    def __init__(self, lock: threading.Lock, context: zmq.Context, port, state: State):
         threading.Thread.__init__(self)
         self.lock = lock
         self.context = context
         self.port = port
-        self.agents = agents
+        self.state = state
 
     def run(self):
         pusher = self.context.socket(zmq.PUSH)
@@ -21,15 +20,15 @@ class TaskPusher(threading.Thread):
         while True:
             try:
                 self.lock.acquire()
-                current_agents = self.agents.agents.items()
+                task = self.state.pop_next_task()
+                current_agents = self.state.connected_agents
                 self.lock.release()
-                for agent, status in current_agents:
-                    print(f"{agent}: {status}")
-                for agent, status in current_agents:
-                    # TODO: add target to message and filtering on the agent side?
-                    pusher.send_multipart([CLONE, b"Master", b"super6-perf-new"])
-                time.sleep(10)
+                if task:
+                    for _ in current_agents:
+                        # round robins to each connected agent
+                        pusher.send_multipart([task.type, task.identity, task.details])
+                time.sleep(1)
             except Exception as e:
                 print(e)
-                time.sleep(10)
+                time.sleep(1)
                 continue
