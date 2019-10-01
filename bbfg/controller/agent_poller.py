@@ -1,7 +1,7 @@
 import threading
 import zmq
-from bfg.controller.state import State
-from bfg.utils.messages import STATUS, BYE
+from bbfg.controller.state import State
+from bbfg.utils.messages import STATUS, BYE
 
 
 class AgentPoller(threading.Thread):

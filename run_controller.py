@@ -1,3 +1,3 @@
-from bfg.controller.create import create_controller
+from bbfg.controller.create import create_controller
 
 app = create_controller()

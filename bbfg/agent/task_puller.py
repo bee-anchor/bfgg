@@ -2,8 +2,8 @@ import threading
 import zmq
 import subprocess
 from pathlib import Path
-from bfg.utils.messages import CLONE, START_TEST
-from bfg.agent.state import State
+from bbfg.utils.messages import CLONE, START_TEST
+from bbfg.agent.state import State
 
 
 class TaskHandler(threading.Thread):

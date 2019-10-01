@@ -1,13 +1,13 @@
 import os
 import zmq
-from bfg.controller.registrator import Registrator
-from bfg.controller.task_pusher import TaskPusher
-from bfg.controller.agent_poller import AgentPoller
-from bfg.controller import LOCK, STATE
+from bbfg.controller.registrator import Registrator
+from bbfg.controller.task_pusher import TaskPusher
+from bbfg.controller.agent_poller import AgentPoller
+from bbfg.controller import LOCK, STATE
 
 from flask import Flask
 from flask_cors import CORS
-from bfg.controller import api
+from bbfg.controller import api
 
 def create_app():
     app = Flask(__name__)

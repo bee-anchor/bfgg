@@ -2,8 +2,8 @@ import threading
 import atexit
 import time
 import zmq
-from bfg.utils.messages import STATUS, BYE
-from bfg.agent.state import State
+from bbfg.utils.messages import STATUS, BYE
+from bbfg.agent.state import State
 
 
 class StatusSender(threading.Thread):

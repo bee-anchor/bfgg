@@ -2,7 +2,7 @@ import zmq
 import threading
 import os
 
-from bfg.controller.state import State
+from bbfg.controller.state import State
 
 
 STATE = State()

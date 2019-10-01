@@ -1,7 +1,7 @@
 from flask import Blueprint, request
-from bfg.controller.state import Task
-from bfg.utils.messages import CLONE, START_TEST, STOP_TEST, STATUS
-from bfg.controller import LOCK, STATE
+from bbfg.controller.state import Task
+from bbfg.utils.messages import CLONE, START_TEST, STOP_TEST, STATUS
+from bbfg.controller import LOCK, STATE
 
 bp = Blueprint('root', __name__)
 
