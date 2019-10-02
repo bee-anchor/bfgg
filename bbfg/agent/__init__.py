@@ -3,7 +3,7 @@ import threading
 import logging
 import os
 from bbfg.agent.registration import register
-from bbfg.agent.task_puller import TaskHandler
+from bbfg.agent.task_handler import TaskHandler
 from bbfg.agent.status_sender import StatusSender
 from bbfg.agent.state import State
 from dotenv import load_dotenv
@@ -23,8 +23,8 @@ def create_agent():
     lock = threading.Lock()
     register(lock, state, context, controller_host, registrator_port)
 
-    task_pusher = TaskHandler(lock, state, context, controller_host, taskpusher_port)
-    task_pusher.start()
-
     status_sender = StatusSender(lock, state, context, controller_host, poller_port)
     status_sender.start()
+
+    task_handler = TaskHandler(lock, state, context, controller_host, taskpusher_port)
+    task_handler.start()
