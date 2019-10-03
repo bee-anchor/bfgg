@@ -2,10 +2,10 @@ import zmq
 import threading
 import logging
 import os
-from bbfg.agent.registration import register
-from bbfg.agent.task_handler import TaskHandler
-from bbfg.agent.status_sender import StatusSender
-from bbfg.agent.state import State
+from bfgg.agent.registration import register
+from bfgg.agent.task_handler import TaskHandler
+from bfgg.agent.status_sender import StatusSender
+from bfgg.agent.state import State
 from dotenv import load_dotenv
 
 

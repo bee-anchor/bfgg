@@ -1,7 +1,7 @@
 import threading
 import zmq
 import time
-from bbfg.controller.state import State
+from bfgg.controller.state import State
 
 
 class TaskPusher(threading.Thread):

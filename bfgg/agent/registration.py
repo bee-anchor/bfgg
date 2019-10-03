@@ -1,7 +1,7 @@
 import zmq
 import threading
-from bbfg.utils.messages import REGISTRATION
-from bbfg.agent.state import State
+from bfgg.utils.messages import REGISTRATION
+from bfgg.agent.state import State
 
 
 def register(lock: threading.Lock, state: State, context: zmq.Context, controller_host: str, port: str):

@@ -3,8 +3,8 @@ from concurrent import futures
 import zmq
 import subprocess
 from pathlib import Path
-from bbfg.utils.messages import CLONE, PREP_TEST, START_TEST
-from bbfg.agent.state import State
+from bfgg.utils.messages import CLONE, PREP_TEST, START_TEST
+from bfgg.agent.state import State
 
 
 class TaskHandler(threading.Thread):

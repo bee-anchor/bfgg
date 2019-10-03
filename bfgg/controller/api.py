@@ -1,7 +1,7 @@
 from flask import Blueprint, request
-from bbfg.controller.state import Task
-from bbfg.utils.messages import CLONE, PREP_TEST, START_TEST, STOP_TEST, STATUS
-from bbfg.controller import LOCK, STATE
+from bfgg.controller.state import Task
+from bfgg.utils.messages import CLONE, PREP_TEST, START_TEST, STOP_TEST, STATUS
+from bfgg.controller import LOCK, STATE
 
 bp = Blueprint('root', __name__)
 
@@ -17,6 +17,7 @@ def clone():
         "clone": "requested"
     }
 
+
 @bp.route('/prep', methods=['GET'])
 def prep():
     LOCK.acquire()
@@ -25,6 +26,7 @@ def prep():
     return {
         "test": "prepping"
     }
+
 
 @bp.route('/start', methods=['POST'])
 def start():

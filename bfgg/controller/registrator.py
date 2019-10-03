@@ -1,7 +1,7 @@
 import threading
 import zmq
-from bbfg.utils.messages import REGISTRATION
-from bbfg.controller.state import State
+from bfgg.utils.messages import REGISTRATION
+from bfgg.controller.state import State
 
 
 class Registrator(threading.Thread):

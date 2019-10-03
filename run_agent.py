@@ -1,4 +1,4 @@
-from bbfg.agent import create_agent
+from bfgg.agent import create_agent
 
 
 if __name__ == "__main__":
