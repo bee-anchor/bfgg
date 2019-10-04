@@ -67,7 +67,7 @@ class TaskHandler(threading.Thread):
         while True:
             line_getter = executor.submit(self.test_process.stdout.readline)
             try:
-                line = line_getter.result(timeout=10)
+                line = line_getter.result(timeout=30)
             except futures.TimeoutError:
                 print("[ERROR] got no output while trying to start sbt - try restarting agent")
                 break
@@ -88,7 +88,7 @@ class TaskHandler(threading.Thread):
         while True:
             line_getter = executor.submit(self.test_process.stdout.readline)
             try:
-                line = line_getter.result(timeout=20)
+                line = line_getter.result(timeout=30)
             except futures.TimeoutError:
                 print("[ERROR] sbt output ended unexpectedly")
                 self.test_process.terminate()
