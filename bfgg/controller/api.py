@@ -36,3 +36,9 @@ def start():
         "test": "requested"
     }
 
+
+@bp.route('/status', methods=['GET'])
+def status():
+    with LOCK:
+        current_status = STATE.current_agents_status()
+    return current_status
