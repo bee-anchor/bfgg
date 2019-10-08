@@ -46,6 +46,17 @@ class State:
         else:
             self._connected_agents[agent] = Agent(state, int(datetime.now().timestamp()))
 
+    def current_agents_status(self):
+        state = {
+            "connected": {},
+            "dead": []
+        }
+        for agent, info in self._connected_agents.items():
+            state["connected"][agent.decode('utf-8')] = info.status
+        for agent, info in self._dead_agents.items():
+            state["dead"].append(agent.decode('utf-8'))
+        return state
+
     def handle_dead_agents(self):
         current_time = int(datetime.now().timestamp())
         for agent, info in self._connected_agents.items():
