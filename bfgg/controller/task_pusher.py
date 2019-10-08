@@ -1,7 +1,11 @@
 import threading
 import zmq
 import time
+import logging
 from bfgg.controller.state import State
+
+
+logger = logging.getLogger(__name__)
 
 
 class TaskPusher(threading.Thread):
@@ -16,10 +20,11 @@ class TaskPusher(threading.Thread):
     def run(self):
         pusher = self.context.socket(zmq.PUSH)
         pusher.bind(f"tcp://*:{self.port}")
-        print("TaskPusher thread started")
+        logger.info("TaskPusher thread started")
         while True:
             try:
                 self.lock.acquire()
+                self.state.handle_dead_agents()
                 task = self.state.pop_next_task()
                 current_agents = self.state.connected_agents
                 self.lock.release()
@@ -29,6 +34,6 @@ class TaskPusher(threading.Thread):
                         pusher.send_multipart([task.type, task.identity, task.details])
                 time.sleep(1)
             except Exception as e:
-                print(e)
+                logger.error(e)
                 time.sleep(1)
                 continue

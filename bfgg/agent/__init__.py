@@ -1,12 +1,16 @@
+import logging
+from pathlib import Path, PurePath
 import zmq
 import threading
-import logging
 import os
 from bfgg.agent.registration import register
 from bfgg.agent.task_handler import TaskHandler
 from bfgg.agent.status_sender import StatusSender
 from bfgg.agent.state import State
 from dotenv import load_dotenv
+
+
+logging.basicConfig(filename=f"{str(PurePath(str(Path.home()), 'bfgg_agent.log'))}", level=logging.DEBUG)
 
 
 def create_agent():
@@ -16,7 +20,6 @@ def create_agent():
     taskpusher_port = os.getenv('TASK_PORT')
     poller_port = os.getenv('POLLER_PORT')
 
-    logger = logging.Logger(__name__)
     context = zmq.Context()
     state = State()
 

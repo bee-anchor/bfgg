@@ -1,7 +1,11 @@
 import threading
 import zmq
+import logging
 from bfgg.utils.messages import REGISTRATION
 from bfgg.controller.state import State
+
+
+logger = logging.getLogger(__name__)
 
 
 class Registrator(threading.Thread):
@@ -16,13 +20,14 @@ class Registrator(threading.Thread):
     def run(self):
         registrator = self.context.socket(zmq.REP)
         registrator.bind(f"tcp://*:{self.port}")
-        print("Registrator thread started")
+        logger.info("Registrator thread started")
         while True:
             [type, identity, message] = registrator.recv_multipart()
             if type == REGISTRATION:
                 self.lock.acquire()
                 self.state.add_agent(identity)
                 self.lock.release()
+                logger.info(f"Agent registered - {identity.decode('utf-8')}")
             else:
-                print(f"Unexpected message recieved by registrator: {type}, {identity}, {message}")
+                logger.error(f"Unexpected message recieved by registrator - {type}, {identity}, {message}")
             registrator.send_multipart([REGISTRATION, b"Master", b"Hello"])

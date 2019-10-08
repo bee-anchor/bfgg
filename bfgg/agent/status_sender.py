@@ -2,8 +2,12 @@ import threading
 import atexit
 import time
 import zmq
+import logging
 from bfgg.utils.messages import STATUS, BYE
 from bfgg.agent.state import State
+
+
+logger = logging.getLogger(__name__)
 
 
 class StatusSender(threading.Thread):
@@ -20,7 +24,7 @@ class StatusSender(threading.Thread):
         atexit.register(self.exit_gracefully)
 
     def run(self):
-        print("AgentPoller thread started")
+        logger.info("AgentPoller thread started")
         while True:
             self.lock.acquire()
             self.stat_sender.send_multipart([STATUS, self.identity, self.state.status.encode('utf-8')])
@@ -28,5 +32,5 @@ class StatusSender(threading.Thread):
             time.sleep(10)
 
     def exit_gracefully(self):
-        print("Agent terminated")
         self.stat_sender.send_multipart([BYE, self.identity, b"goodbye"])
+        logger.info("Agent terminated")

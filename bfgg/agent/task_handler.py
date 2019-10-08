@@ -2,10 +2,13 @@ import threading
 from concurrent import futures
 import zmq
 import subprocess
+import logging
 from pathlib import Path
 from bfgg.utils.messages import CLONE, PREP_TEST, START_TEST
 from bfgg.agent.state import State
 
+
+logger = logging.getLogger(__name__)
 
 class TaskHandler(threading.Thread):
 
@@ -22,7 +25,7 @@ class TaskHandler(threading.Thread):
     def run(self):
         handler = self.context.socket(zmq.PULL)
         handler.connect(f"tcp://{self.controller_host}:{self.port}")
-        print("TaskHandler thread started")
+        logger.info("TaskHandler thread started")
         while True:
             [type, identity, message] = handler.recv_multipart()
             if type == CLONE:
@@ -35,7 +38,7 @@ class TaskHandler(threading.Thread):
                 print(type, identity, message)
 
     def clone_repo(self, project: str):
-        print(f"Getting {project}")
+        logger.info(f"Getting {project}")
         self.project = project
         resp = subprocess.Popen(['git', 'clone', f'git@bitbucket.org:infinityworksconsulting/{project}.git'],
                                 cwd=str(Path.home()),
@@ -54,10 +57,10 @@ class TaskHandler(threading.Thread):
                                     stderr=subprocess.STDOUT)
             stdout, stderror = resp.communicate()
             stdout = stdout.decode('utf-8')
-        print(stdout, stderror)
+        logger.info(stdout, stderror)
 
     def prepare_test(self):
-        print(f"Starting sbt for {self.project}")
+        logger.info(f"Starting sbt for {self.project}")
         self.test_process = subprocess.Popen(['sbt'],
                                              cwd=f"{str(Path.home())}/{self.project}",
                                              stdin=subprocess.PIPE,
@@ -69,10 +72,10 @@ class TaskHandler(threading.Thread):
             try:
                 line = line_getter.result(timeout=30)
             except futures.TimeoutError:
-                print("[ERROR] got no output while trying to start sbt - try restarting agent")
+                logger.error("got no output while trying to start sbt - try restarting agent")
                 break
             else:
-                print(line.decode('utf-8'), end="")
+                logger.info(line.decode('utf-8'), end="")
                 if b"sbt server started" in line:
                     self.lock.acquire()
                     self.state.status = "Ready"
@@ -90,8 +93,8 @@ class TaskHandler(threading.Thread):
             try:
                 line = line_getter.result(timeout=30)
             except futures.TimeoutError:
-                print("[ERROR] sbt output ended unexpectedly")
                 self.test_process.terminate()
+                logger.error("sbt output ended unexpectedly, sbt process terminated")
                 break
             else:
                 print(line.decode('utf-8'), end="")
@@ -100,11 +103,11 @@ class TaskHandler(threading.Thread):
                     self.state.status = "Test_Running"
                     self.lock.release()
                 elif b"No tests to run for Gatling" in line:
-                    print("No test was run, check the test class provided")
+                    logger.error(f"No test was run, check the test class provided: {test}")
                     self.test_process.terminate()
                     break
                 elif b"[success]" in line:
-                    print("Test finished!")
+                    logger.info(f"Test {test} finished!")
                     self.test_process.terminate()
                     self.lock.acquire()
                     self.state.status = "Test_Finished"

@@ -1,7 +1,11 @@
 import threading
 import zmq
+import logging
 from bfgg.controller.state import State
 from bfgg.utils.messages import STATUS, BYE
+
+
+logger = logging.getLogger(__name__)
 
 
 class AgentPoller(threading.Thread):
@@ -15,12 +19,12 @@ class AgentPoller(threading.Thread):
     def run(self):
         poller = self.context.socket(zmq.PULL)
         poller.bind(f"tcp://*:{self.port}")
-        print("AgentPoller thread started")
+        logger.info("AgentPoller thread started")
         while True:
             [type, identity, message] = poller.recv_multipart()
             if type == STATUS:
                 self.lock.acquire()
-                self.state.update_agent_state(identity, message.decode('utf-8'))
+                self.state.update_agent(identity, message.decode('utf-8'))
                 self.lock.release()
             elif type == BYE:
                 self.lock.acquire()

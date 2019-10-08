@@ -18,6 +18,8 @@ The agents is where the Gatling tests are actually run.
 ## Architecture
 
 The language used is Python, with a web UI in React
+
+
 Libraries used are:
 * ZeroMQ - a messaging library used for communication between controller and agents
 * Flask - web framework used for the API
@@ -64,6 +66,8 @@ of their current status. It expects to hear from them every few seconds or will 
 Along side this the agents run a 'Task Handler' that sits listening for commands from the controller. When a task is scheduled from the API or UI,
 the controller sends a message to all connected agents in the correct state to perform the task, knowing when it is done via a status change from the 'Agent State Puller'
 
+Additionally there is an API that runs alongside this on the controller for sending tasks and getting cluster status.
+There will also be a react front end eventually driven by the APIs.
 
 ## Running BFGG
 
