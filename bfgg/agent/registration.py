@@ -24,9 +24,8 @@ def register(lock: threading.Lock, state: State, context: zmq.Context, controlle
             logger.error(f"Did not recieve registration confirmation message from Controller - is specified controller host ({controller_host}) correct?")
         else:
             logger.info("Registered")
-            lock.acquire()
-            state.status = "Registered"
-            lock.release()
+            with lock:
+                state.status = "Registered"
             break
 
     registrator.close()

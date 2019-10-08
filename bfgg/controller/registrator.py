@@ -24,9 +24,8 @@ class Registrator(threading.Thread):
         while True:
             [type, identity, message] = registrator.recv_multipart()
             if type == REGISTRATION:
-                self.lock.acquire()
-                self.state.add_agent(identity)
-                self.lock.release()
+                with self.lock:
+                    self.state.add_agent(identity)
                 logger.info(f"Agent registered - {identity.decode('utf-8')}")
             else:
                 logger.error(f"Unexpected message recieved by registrator - {type}, {identity}, {message}")

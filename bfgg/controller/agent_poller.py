@@ -23,13 +23,11 @@ class AgentPoller(threading.Thread):
         while True:
             [type, identity, message] = poller.recv_multipart()
             if type == STATUS:
-                self.lock.acquire()
-                self.state.update_agent(identity, message.decode('utf-8'))
-                self.lock.release()
+                with self.lock:
+                    self.state.update_agent(identity, message.decode('utf-8'))
             elif type == BYE:
-                self.lock.acquire()
-                self.state.remove_agent(identity)
-                self.lock.release()
+                with self.lock:
+                    self.state.remove_agent(identity)
 
 
 

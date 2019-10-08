@@ -26,9 +26,8 @@ class StatusSender(threading.Thread):
     def run(self):
         logger.info("AgentPoller thread started")
         while True:
-            self.lock.acquire()
-            self.stat_sender.send_multipart([STATUS, self.identity, self.state.status.encode('utf-8')])
-            self.lock.release()
+            with self.lock:
+                self.stat_sender.send_multipart([STATUS, self.identity, self.state.status.encode('utf-8')])
             time.sleep(10)
 
     def exit_gracefully(self):

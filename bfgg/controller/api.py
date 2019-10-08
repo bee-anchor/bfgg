@@ -10,9 +10,8 @@ bp = Blueprint('root', __name__)
 def clone():
     body = request.get_json(force=True)
     repo = body['repo']
-    LOCK.acquire()
-    STATE.add_task(Task(CLONE, b'MASTER', repo.encode('utf-8')))
-    LOCK.release()
+    with LOCK:
+        STATE.add_task(Task(CLONE, b'MASTER', repo.encode('utf-8')))
     return {
         "clone": "requested"
     }
@@ -20,9 +19,8 @@ def clone():
 
 @bp.route('/prep', methods=['GET'])
 def prep():
-    LOCK.acquire()
-    STATE.add_task(Task(PREP_TEST, b'MASTER', b"get ready"))
-    LOCK.release()
+    with LOCK:
+        STATE.add_task(Task(PREP_TEST, b'MASTER', b"get ready"))
     return {
         "test": "prepping"
     }
@@ -32,11 +30,9 @@ def prep():
 def start():
     body = request.get_json(force=True)
     test = body['testClass']
-    LOCK.acquire()
-    STATE.add_task(Task(START_TEST, b'MASTER', test.encode('utf-8')))
-    LOCK.release()
+    with LOCK:
+        STATE.add_task(Task(START_TEST, b'MASTER', test.encode('utf-8')))
     return {
         "test": "requested"
     }
-
 

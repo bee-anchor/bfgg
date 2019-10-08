@@ -23,11 +23,10 @@ class TaskPusher(threading.Thread):
         logger.info("TaskPusher thread started")
         while True:
             try:
-                self.lock.acquire()
-                self.state.handle_dead_agents()
-                task = self.state.pop_next_task()
-                current_agents = self.state.connected_agents
-                self.lock.release()
+                with self.lock:
+                    self.state.handle_dead_agents()
+                    task = self.state.pop_next_task()
+                    current_agents = self.state.connected_agents
                 if task:
                     for _ in current_agents:
                         # round robins to each connected agent

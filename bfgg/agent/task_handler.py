@@ -47,9 +47,8 @@ class TaskHandler(threading.Thread):
         stdout, stderror = resp.communicate()
         stdout = stdout.decode('utf-8')
         if f"Cloning into '{project}'" in stdout:
-            self.lock.acquire()
-            self.state.status = "Cloned"
-            self.lock.release()
+            with self.lock:
+                self.state.status = "Cloned"
             logger.info(f"Cloned {project}")
         elif f"destination path '{project}' already exists and is not an empty directory" in stdout:
             resp = subprocess.Popen(['git', 'pull'],
@@ -58,9 +57,8 @@ class TaskHandler(threading.Thread):
                                     stderr=subprocess.STDOUT)
             stdout, stderror = resp.communicate()
             stdout = stdout.decode('utf-8')
-            self.lock.acquire()
-            self.state.status = "Cloned"
-            self.lock.release()
+            with self.lock:
+                self.state.status = "Cloned"
             logger.info(f"Got latest {project}")
         logger.debug(stdout)
 
@@ -83,9 +81,8 @@ class TaskHandler(threading.Thread):
             else:
                 logger.debug(line.decode('utf-8').rstrip())
                 if b"sbt server started" in line:
-                    self.lock.acquire()
-                    self.state.status = "Ready"
-                    self.lock.release()
+                    with self.lock:
+                        self.state.status = "Ready"
                     logger.info("SBT server started successfully")
                     break
 
@@ -101,17 +98,15 @@ class TaskHandler(threading.Thread):
                 line = line_getter.result(timeout=30)
             except futures.TimeoutError:
                 self.test_process.terminate()
-                self.lock.acquire()
-                self.state.status = "Cloned"
-                self.lock.release()
+                with self.lock:
+                    self.state.status = "Cloned"
                 logger.error("sbt output ended unexpectedly, sbt process terminated")
                 break
             else:
                 logger.debug(line.decode('utf-8').rstrip())
                 if f"Simulation {test} started".encode('utf-8') in line:
-                    self.lock.acquire()
-                    self.state.status = "Test_Running"
-                    self.lock.release()
+                    with self.lock:
+                        self.state.status = "Test_Running"
                     logger.info(f"Test {test} started")
                 elif b"No tests to run for Gatling" in line:
                     self.test_process.terminate()
@@ -119,8 +114,7 @@ class TaskHandler(threading.Thread):
                     break
                 elif b"[success]" in line:
                     self.test_process.terminate()
-                    self.lock.acquire()
-                    self.state.status = "Test_Finished"
-                    self.lock.release()
+                    with self.lock:
+                        self.state.status = "Test_Finished"
                     logger.info(f"Test {test} finished!")
                     break
