@@ -26,7 +26,7 @@ class TaskPusher(threading.Thread):
                 with self.lock:
                     self.state.handle_dead_agents()
                     task = self.state.pop_next_task()
-                    current_agents = self.state.connected_agents
+                    current_agents = list(self.state.connected_agents)
                 if task:
                     for _ in current_agents:
                         # round robins to each connected agent

@@ -38,9 +38,10 @@ class TaskHandler(threading.Thread):
                 print(type, identity, message)
 
     def clone_repo(self, project: str):
+        project_name = project[project.find('/') + 1: project.find('.git')]
         logger.info(f"Getting {project}")
         self.project = project
-        resp = subprocess.Popen(['git', 'clone', f'git@bitbucket.org:infinityworksconsulting/{project}.git'],
+        resp = subprocess.Popen(['git', 'clone', f'{project}'],
                                 cwd=str(Path.home()),
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT)
@@ -49,8 +50,8 @@ class TaskHandler(threading.Thread):
         if f"Cloning into '{project}'" in stdout:
             with self.lock:
                 self.state.status = "Cloned"
-            logger.info(f"Cloned {project}")
-        elif f"destination path '{project}' already exists and is not an empty directory" in stdout:
+            logger.info(f"Cloned {project_name}")
+        elif f"destination path '{project_name}' already exists and is not an empty directory" in stdout:
             resp = subprocess.Popen(['git', 'pull'],
                                     cwd=f"{str(Path.home())}/{project}",
                                     stdout=subprocess.PIPE,
@@ -59,7 +60,7 @@ class TaskHandler(threading.Thread):
             stdout = stdout.decode('utf-8')
             with self.lock:
                 self.state.status = "Cloned"
-            logger.info(f"Got latest {project}")
+            logger.info(f"Got latest {project_name}")
         logger.debug(stdout)
 
 
