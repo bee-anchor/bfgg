@@ -108,7 +108,7 @@ Clone the repo containing the Gatling test code
 POST /clone
 
 {
-    "repo": "repoName"
+    "repo": "repoUrl"
 }
 ```
 
