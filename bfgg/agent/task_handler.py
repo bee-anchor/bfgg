@@ -51,7 +51,7 @@ class TaskHandler(threading.Thread):
             with self.lock:
                 self.state.status = "Cloned"
             logger.info(f"Cloned {project_name}")
-        elif f"destination path '{project_name}' already exists and is not an empty directory" in stdout:
+        elif f"already exists and is not an empty directory" in stdout:
             resp = subprocess.Popen(['git', 'pull'],
                                     cwd=f"{str(Path.home())}/{project}",
                                     stdout=subprocess.PIPE,
