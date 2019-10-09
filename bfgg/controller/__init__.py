@@ -39,4 +39,4 @@ def create_controller():
     agent_poller = AgentPoller(LOCK, context, poller_port, STATE)
     agent_poller.start()
 
-application = create_app()
+app = create_app()

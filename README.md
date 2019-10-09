@@ -25,6 +25,7 @@ Libraries used are:
 * Flask - web framework used for the API
 * threading - standard library for parallelism using threads
 * subprocess - standard library for starting other processes - used for git processes and running Gatling
+* Twisted - for running the flask app
 
 The Controller and Agents have three main parts that comprises their inter-communication:
 
@@ -82,9 +83,9 @@ Prereqs are:
 * Python 3
 * requirements.txt libraries
 
-Run with:
+Run locally with:
 
-`gunicorn -b 0.0.0.0:<port> wsgi`
+`twistd -n web --wsgi run_controller.app --port tcp:8000`
 
 
 ### The Agents
@@ -96,8 +97,33 @@ Prereqs are:
 * Git
 * requirements.txt libraries
 
-Run with:
+Run locally with:
 
 `python run_agent.py`
+
+## APIs
+
+Clone the repo containing the Gatling test code
+```
+POST /clone
+
+{
+    "repo": "repoName"
+}
+```
+
+Instruct all agents to start sbt - helps with coordinating test kick off time
+```
+POST /prep
+```
+
+Instruct all agents to start the test specified
+```
+POST /start
+
+{
+    "testClass": "testClass"
+}
+```
 
 

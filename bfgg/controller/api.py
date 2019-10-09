@@ -17,7 +17,7 @@ def clone():
     }
 
 
-@bp.route('/prep', methods=['GET'])
+@bp.route('/prep', methods=['POST'])
 def prep():
     with LOCK:
         STATE.add_task(Task(PREP_TEST, b'MASTER', b"get ready"))
