@@ -1,5 +1,4 @@
 import logging
-from pathlib import Path, PurePath
 import zmq
 import threading
 import os
@@ -10,7 +9,7 @@ from bfgg.agent.state import State
 from dotenv import load_dotenv
 
 
-logging.basicConfig(filename=f"{str(PurePath(str(Path.home()), 'bfgg_agent.log'))}", level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 
 
 def create_agent():

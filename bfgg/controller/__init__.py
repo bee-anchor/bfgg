@@ -1,7 +1,6 @@
 import os
 import zmq
 import logging
-from pathlib import Path, PurePath
 from dotenv import load_dotenv
 from bfgg.controller.registrator import Registrator
 from bfgg.controller.task_pusher import TaskPusher
@@ -13,7 +12,7 @@ from flask_cors import CORS
 from bfgg.controller import api
 
 
-logging.basicConfig(filename=f"{str(PurePath(str(Path.home()), 'bfgg_controller.log'))}", level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 
 def create_app():
     app = Flask(__name__)

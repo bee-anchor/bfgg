@@ -1,14 +1,17 @@
 import threading
+import os
+import signal
 from concurrent import futures
 import zmq
 import subprocess
 import logging
 from pathlib import Path
-from bfgg.utils.messages import CLONE, PREP_TEST, START_TEST
+from bfgg.utils.messages import CLONE, PREP_TEST, START_TEST, STOP_TEST
 from bfgg.agent.state import State
 
 
 logger = logging.getLogger(__name__)
+
 
 class TaskHandler(threading.Thread):
 
@@ -34,6 +37,8 @@ class TaskHandler(threading.Thread):
                 self.prepare_test()
             elif type == START_TEST:
                 self.start_test(message.decode('utf-8'))
+            elif type == STOP_TEST:
+                self.stop_test()
             else:
                 print(type, identity, message)
 
@@ -63,11 +68,12 @@ class TaskHandler(threading.Thread):
             logger.info(f"Got latest {project_name}")
         logger.debug(stdout)
 
-
     def prepare_test(self):
         logger.info(f"Starting sbt for {self.project}")
+        # creates process group for children as this spawns children that otherwise won't get any signals
         self.test_process = subprocess.Popen(['sbt'],
                                              cwd=f"{str(Path.home())}/{self.project}",
+                                             preexec_fn=os.setsid,
                                              stdin=subprocess.PIPE,
                                              stdout=subprocess.PIPE,
                                              stderr=subprocess.STDOUT)
@@ -77,6 +83,8 @@ class TaskHandler(threading.Thread):
             try:
                 line = line_getter.result(timeout=30)
             except futures.TimeoutError:
+                # Have to terminate process this way to deal with the child process too
+                os.killpg(self.test_process.pid, signal.SIGTERM)
                 logger.error("got no output while trying to start sbt - try restarting agent")
                 break
             else:
@@ -98,7 +106,7 @@ class TaskHandler(threading.Thread):
             try:
                 line = line_getter.result(timeout=30)
             except futures.TimeoutError:
-                self.test_process.terminate()
+                os.killpg(self.test_process.pid, signal.SIGTERM)
                 with self.lock:
                     self.state.status = "Cloned"
                 logger.error("sbt output ended unexpectedly, sbt process terminated")
@@ -110,12 +118,19 @@ class TaskHandler(threading.Thread):
                         self.state.status = "Test_Running"
                     logger.info(f"Test {test} started")
                 elif b"No tests to run for Gatling" in line:
-                    self.test_process.terminate()
+                    os.killpg(self.test_process.pid, signal.SIGTERM)
                     logger.error(f"No test was run, check the test class provided: {test}")
                     break
                 elif b"[success]" in line:
-                    self.test_process.terminate()
+                    os.killpg(self.test_process.pid, signal.SIGTERM)
                     with self.lock:
                         self.state.status = "Test_Finished"
                     logger.info(f"Test {test} finished!")
                     break
+
+    def stop_test(self):
+        if self.test_process.poll() is None:
+            os.killpg(self.test_process.pid, signal.SIGTERM)
+            with self.lock:
+                self.state.status = "Cloned"
+            logger.info("Stopped test")

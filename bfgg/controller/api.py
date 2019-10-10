@@ -37,6 +37,15 @@ def start():
     }
 
 
+@bp.route('/stop', methods=['POST'])
+def stop():
+    with LOCK:
+        STATE.add_task(Task(STOP_TEST, b'MASTER', b"STOP"))
+    return {
+        "testStop": "requested"
+    }
+
+
 @bp.route('/status', methods=['GET'])
 def status():
     with LOCK:
