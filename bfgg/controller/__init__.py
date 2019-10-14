@@ -1,19 +1,17 @@
 import os
-import zmq
 import logging
-from pathlib import Path, PurePath
 from dotenv import load_dotenv
 from bfgg.controller.registrator import Registrator
 from bfgg.controller.task_pusher import TaskPusher
 from bfgg.controller.agent_poller import AgentPoller
-from bfgg.controller.model import LOCK, STATE
+from bfgg.controller.model import LOCK, STATE, CONTEXT
 
 from flask import Flask
 from flask_cors import CORS
 from bfgg.controller import api
 
 
-logging.basicConfig(filename=f"{str(PurePath(str(Path.home()), 'bfgg_controller.log'))}", level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 
 def create_app():
     app = Flask(__name__)
@@ -28,15 +26,13 @@ def create_controller():
     taskpusher_port = os.getenv('TASK_PORT')
     poller_port = os.getenv('POLLER_PORT')
 
-    context = zmq.Context()
-
-    registrator = Registrator(LOCK, context, registrator_port, STATE)
+    registrator = Registrator(LOCK, CONTEXT, registrator_port, STATE)
     registrator.start()
 
-    task_pusher = TaskPusher(LOCK, context, taskpusher_port, STATE)
+    task_pusher = TaskPusher(LOCK, CONTEXT, taskpusher_port, STATE)
     task_pusher.start()
 
-    agent_poller = AgentPoller(LOCK, context, poller_port, STATE)
+    agent_poller = AgentPoller(LOCK, CONTEXT, poller_port, STATE)
     agent_poller.start()
 
 app = create_app()

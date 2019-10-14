@@ -28,7 +28,7 @@ class StatusSender(threading.Thread):
         while True:
             with self.lock:
                 self.stat_sender.send_multipart([STATUS, self.identity, self.state.status.encode('utf-8')])
-            time.sleep(10)
+            time.sleep(2)
 
     def exit_gracefully(self):
         self.stat_sender.send_multipart([BYE, self.identity, b"goodbye"])

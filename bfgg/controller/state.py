@@ -29,7 +29,7 @@ class State:
 
     @property
     def connected_agents(self):
-        return self._connected_agents.keys()
+        return list(self._connected_agents.keys())
 
     def add_agent(self, agent):
         if agent not in self._connected_agents:

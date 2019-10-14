@@ -1,7 +1,8 @@
+import os
 from flask import Blueprint, request
 from bfgg.controller.state import Task
 from bfgg.utils.messages import CLONE, PREP_TEST, START_TEST, STOP_TEST, STATUS
-from bfgg.controller.model import LOCK, STATE
+from bfgg.controller.model import LOCK, STATE, CONTEXT
 
 bp = Blueprint('root', __name__)
 
@@ -17,23 +18,25 @@ def clone():
     }
 
 
-@bp.route('/prep', methods=['POST'])
-def prep():
-    with LOCK:
-        STATE.add_task(Task(PREP_TEST, b'MASTER', b"get ready"))
-    return {
-        "test": "prepping"
-    }
-
-
 @bp.route('/start', methods=['POST'])
 def start():
     body = request.get_json(force=True)
+    project = body['project']
     test = body['testClass']
+    task = f"{project},{test}".encode('utf-8')
     with LOCK:
-        STATE.add_task(Task(START_TEST, b'MASTER', test.encode('utf-8')))
+        STATE.add_task(Task(START_TEST, b'MASTER', task))
     return {
         "test": "requested"
+    }
+
+
+@bp.route('/stop', methods=['POST'])
+def stop():
+    with LOCK:
+        STATE.add_task(Task(STOP_TEST, b'MASTER', b"STOP"))
+    return {
+        "testStop": "requested"
     }
 
 
