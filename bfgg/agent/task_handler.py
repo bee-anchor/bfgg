@@ -53,7 +53,7 @@ class TaskHandler(threading.Thread):
                                 stderr=subprocess.STDOUT)
         stdout, stderror = resp.communicate()
         stdout = stdout.decode('utf-8')
-        if f"Cloning into '{project}'" in stdout:
+        if f"Cloning into '{project_name}'" in stdout:
             with self.lock:
                 self.state.status = "Cloned"
             logger.info(f"Cloned {project_name}")
