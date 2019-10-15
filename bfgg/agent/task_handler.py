@@ -29,16 +29,20 @@ class TaskHandler(threading.Thread):
         handler.connect(f"tcp://{self.controller_host}:{self.port}")
         logger.info("TaskHandler thread started")
         while True:
-            [type, identity, message] = handler.recv_multipart()
-            if type == CLONE:
-                self.clone_repo(message.decode("utf-8"))
-            elif type == START_TEST:
-                project, test = message.decode('utf-8').split(",")
-                self.start_test(project, test)
-            elif type == STOP_TEST:
-                self.stop_test()
-            else:
-                print(type, identity, message)
+            try:
+                [type, identity, message] = handler.recv_multipart()
+                if type == CLONE:
+                    self.clone_repo(message.decode("utf-8"))
+                elif type == START_TEST:
+                    project, test = message.decode('utf-8').split(",")
+                    self.start_test(project, test)
+                elif type == STOP_TEST:
+                    self.stop_test()
+                else:
+                    print(type, identity, message)
+            except Exception as e:
+                logger.error(e)
+                continue
 
     def clone_repo(self, project: str):
         project_name = project[project.find('/') + 1: project.find('.git')]
@@ -66,7 +70,9 @@ class TaskHandler(threading.Thread):
         logger.debug(stdout)
 
     def start_test(self, project: str, test: str):
-        self.test_process = subprocess.Popen([f'{self.gatling_location}/bin/gatling.sh', '-nr', '-sf', f'~/{project}/src', '-s', test, '-rf', self.results_folder],
+        logger.info([f'{self.gatling_location}/bin/gatling.sh', '-nr', '-sf', f'{str(Path.home())}/{project}/src', '-s', test, '-rf', self.results_folder],)
+        self.test_process = subprocess.Popen([f'{self.gatling_location}/bin/gatling.sh', '-nr', '-sf', f'{str(Path.home())}/{project}/src', '-s', test, '-rf', self.results_folder],
+                                             cwd=f'{str(Path.home())}/{project}',
                                              preexec_fn=os.setsid,
                                              stdin=subprocess.PIPE,
                                              stdout=subprocess.PIPE,
@@ -84,7 +90,11 @@ class TaskHandler(threading.Thread):
                 break
             else:
                 logger.debug(line.decode('utf-8').rstrip())
-                if f"Simulation {test} started".encode('utf-8') in line:
+                if line == b'':
+                    self.test_process.terminate()
+                    logger.error("gatling output ended unexpectedly, gatling process terminated")
+                    break
+                elif f"Simulation {test} started".encode('utf-8') in line:
                     with self.lock:
                         self.state.status = "Test_Running"
                     logger.info(f"Test {test} started")
