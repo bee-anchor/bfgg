@@ -1,7 +1,6 @@
 import os
 import logging
 from dotenv import load_dotenv
-from bfgg.controller.registrator import Registrator
 from bfgg.controller.task_pusher import TaskPusher
 from bfgg.controller.agent_poller import AgentPoller
 from bfgg.controller.model import LOCK, STATE, CONTEXT
@@ -13,6 +12,7 @@ from bfgg.controller import api
 
 logging.basicConfig(level=logging.DEBUG)
 
+
 def create_app():
     app = Flask(__name__)
     CORS(app)
@@ -22,17 +22,14 @@ def create_app():
 
 def create_controller():
     load_dotenv()
-    registrator_port = os.getenv('REGISTRATOR_PORT')
     taskpusher_port = os.getenv('TASK_PORT')
     poller_port = os.getenv('POLLER_PORT')
-
-    registrator = Registrator(LOCK, CONTEXT, registrator_port, STATE)
-    registrator.start()
 
     task_pusher = TaskPusher(LOCK, CONTEXT, taskpusher_port, STATE)
     task_pusher.start()
 
     agent_poller = AgentPoller(LOCK, CONTEXT, poller_port, STATE)
     agent_poller.start()
+
 
 app = create_app()

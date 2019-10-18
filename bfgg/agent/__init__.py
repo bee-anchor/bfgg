@@ -3,7 +3,6 @@ import socket
 import zmq
 import threading
 import os
-from bfgg.agent.registration import register
 from bfgg.agent.task_handler import TaskHandler
 from bfgg.agent.status_sender import StatusSender
 from bfgg.agent.results_sender import ResultsSender
@@ -44,9 +43,7 @@ def create_agent():
 
     context = zmq.Context()
     state = State(identity)
-
     lock = threading.Lock()
-    register(lock, state, context, controller_host, registrator_port)
 
     status_sender = StatusSender(lock, state, context, controller_host, poller_port)
     status_sender.start()
