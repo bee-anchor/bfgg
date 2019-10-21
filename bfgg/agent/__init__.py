@@ -30,10 +30,10 @@ def get_identity(controller_host):
 def create_agent():
     load_dotenv()
     controller_host = os.getenv('CONTROLLER_HOST')
-    registrator_port = os.getenv('REGISTRATOR_PORT')
     taskpusher_port = os.getenv('TASK_PORT')
     poller_port = os.getenv('POLLER_PORT')
     results_port = os.getenv('RESULTS_PORT')
+    tests_location = os.getenv('TESTS_LOCATION')
     results_folder = os.getenv('RESULTS_FOLDER')
     gatling_location = os.getenv('GATLING_LOCATION')
 
@@ -48,7 +48,8 @@ def create_agent():
     status_sender = StatusSender(lock, state, context, controller_host, poller_port)
     status_sender.start()
 
-    task_handler = TaskHandler(lock, state, context, controller_host, taskpusher_port, results_folder, gatling_location)
+    task_handler = TaskHandler(lock, state, context, controller_host, taskpusher_port,
+                               tests_location, results_folder, gatling_location)
     task_handler.start()
 
     results_sender = ResultsSender(lock, context, results_port, state, results_folder)

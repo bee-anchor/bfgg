@@ -29,10 +29,11 @@ def clone():
 
 @bp.route('/start', methods=['POST'])
 def start():
-    body = request.get_json(force=True)
+    body: dict = request.get_json(force=True)
     project = body['project']
     test = body['testClass']
-    task = f"{project},{test}".encode('utf-8')
+    javaOpts = body.get('javaOpts', '')
+    task = f"{project},{test},{javaOpts}".encode('utf-8')
     with LOCK:
         STATE.add_task(Task(START_TEST, b'MASTER', task))
     return {

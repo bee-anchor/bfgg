@@ -10,7 +10,7 @@ from flask_cors import CORS
 from bfgg.controller import api
 
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 
 def create_app():

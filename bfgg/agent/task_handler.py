@@ -11,15 +11,18 @@ from bfgg.agent.state import State
 
 logger = logging.getLogger(__name__)
 
+
 class TaskHandler(threading.Thread):
 
-    def __init__(self, lock: threading.Lock, state: State, context: zmq.Context, controller_host: str, port: str, results_folder: str, gatling_location: str):
+    def __init__(self, lock: threading.Lock, state: State, context: zmq.Context, controller_host: str, port: str,
+                 tests_location: str, results_folder: str, gatling_location: str):
         threading.Thread.__init__(self)
         self.lock = lock
         self.state = state
         self.context = context
         self.controller_host = controller_host
         self.port = port
+        self.tests_location = tests_location
         self.results_folder = results_folder
         self.gatling_location = gatling_location
         self.test_process = None
@@ -34,8 +37,8 @@ class TaskHandler(threading.Thread):
                 if type == CLONE:
                     self.clone_repo(message.decode("utf-8"))
                 elif type == START_TEST:
-                    project, test = message.decode('utf-8').split(",")
-                    self.start_test(project, test)
+                    project, test, java_opts = message.decode('utf-8').split(",")
+                    self.start_test(project, test, java_opts)
                 elif type == STOP_TEST:
                     self.stop_test()
                 else:
@@ -69,10 +72,15 @@ class TaskHandler(threading.Thread):
             logger.info(f"Got latest {project_name}")
         logger.debug(stdout)
 
-    def start_test(self, project: str, test: str):
-        logger.info([f'{self.gatling_location}/bin/gatling.sh', '-nr', '-sf', f'{str(Path.home())}/{project}/src', '-s', test, '-rf', self.results_folder],)
-        self.test_process = subprocess.Popen([f'{self.gatling_location}/bin/gatling.sh', '-nr', '-sf', f'{str(Path.home())}/{project}/src', '-s', test, '-rf', self.results_folder],
-                                             cwd=f'{str(Path.home())}/{project}',
+    def start_test(self, project: str, test: str, java_opts: str):
+        environ = os.environ.copy()
+        if java_opts != '':
+            logger.info(java_opts)
+            environ['JAVA_OPTS'] = java_opts
+        logger.info([f'{self.gatling_location}/bin/gatling.sh', '-nr', '-sf', f'{self.tests_location}/{project}/src', '-s', test, '-rf', self.results_folder],)
+        self.test_process = subprocess.Popen([f'{self.gatling_location}/bin/gatling.sh', '-nr', '-sf', f'{self.tests_location}/{project}/src', '-s', test, '-rf', self.results_folder],
+                                             cwd=f'{self.tests_location}/{project}',
+                                             env=environ,
                                              preexec_fn=os.setsid,
                                              stdin=subprocess.PIPE,
                                              stdout=subprocess.PIPE,

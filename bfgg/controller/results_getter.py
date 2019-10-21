@@ -169,7 +169,7 @@ class ResultsGetter:
             with open(os.path.join(self.results_folder, str_agent.replace('.', '_')) + '.log', "w+") as f:
                 self._data_getter_loop(getter, f, str_agent)
 
-        logger.debug([f'{self.gatling_location}/bin/gatling.sh', '-ro', self.results_folder])
+        logger.info([f'{self.gatling_location}/bin/gatling.sh', '-ro', self.results_folder])
         report_process = subprocess.Popen(
             [f'{self.gatling_location}/bin/gatling.sh', '-ro', self.results_folder],
             cwd=self.results_folder,
