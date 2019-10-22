@@ -149,16 +149,13 @@ class ResultsGetter:
         return url
 
     def get_results(self):
-
         self._reset_results_folder()
-
-        getter = self.context.socket(zmq.DEALER)
-        getter.set_hwm(self.PIPELINE)
-
         with self.lock:
             current_agents = self.state.connected_agents
 
         for agent in current_agents:
+            getter = self.context.socket(zmq.DEALER)
+            getter.set_hwm(self.PIPELINE)
             str_agent = agent.decode('utf-8')
             logger.info(f"Starting receiving results from {str_agent}")
             getter.setsockopt(zmq.IDENTITY, agent)
