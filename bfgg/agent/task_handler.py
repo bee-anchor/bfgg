@@ -3,13 +3,10 @@ import os
 from concurrent import futures
 import zmq
 import subprocess
-import logging
+import logging.config
 from pathlib import Path
 from bfgg.utils.messages import CLONE, START_TEST, STOP_TEST
 from bfgg.agent.state import State
-
-
-logger = logging.getLogger(__name__)
 
 
 class TaskHandler(threading.Thread):
@@ -30,7 +27,7 @@ class TaskHandler(threading.Thread):
     def run(self):
         handler = self.context.socket(zmq.PULL)
         handler.connect(f"tcp://{self.controller_host}:{self.port}")
-        logger.info("TaskHandler thread started")
+        logging.info("TaskHandler thread started")
         while True:
             try:
                 [type, identity, message] = handler.recv_multipart()
@@ -44,12 +41,12 @@ class TaskHandler(threading.Thread):
                 else:
                     print(type, identity, message)
             except Exception as e:
-                logger.error(e)
+                logging.error(e)
                 continue
 
     def clone_repo(self, project: str):
         project_name = project[project.find('/') + 1: project.find('.git')]
-        logger.info(f"Getting {project}")
+        logging.info(f"Getting {project}")
         resp = subprocess.Popen(['git', 'clone', project],
                                 cwd=str(Path.home()),
                                 stdout=subprocess.PIPE,
@@ -59,7 +56,7 @@ class TaskHandler(threading.Thread):
         if f"Cloning into '{project_name}'" in stdout:
             with self.lock:
                 self.state.status = "Cloned"
-            logger.info(f"Cloned {project_name}")
+            logging.info(f"Cloned {project_name}")
         elif f"already exists and is not an empty directory" in stdout:
             resp = subprocess.Popen(['git', 'pull'],
                                     cwd=f"{str(Path.home())}/{project_name}",
@@ -69,15 +66,15 @@ class TaskHandler(threading.Thread):
             stdout = stdout.decode('utf-8')
             with self.lock:
                 self.state.status = "Cloned"
-            logger.info(f"Got latest {project_name}")
-        logger.debug(stdout)
+            logging.info(f"Got latest {project_name}")
+        logging.debug(stdout)
 
     def start_test(self, project: str, test: str, java_opts: str):
         environ = os.environ.copy()
         if java_opts != '':
-            logger.info(java_opts)
+            logging.info(java_opts)
             environ['JAVA_OPTS'] = java_opts
-        logger.info([f'{self.gatling_location}/bin/gatling.sh', '-nr', '-sf', f'{self.tests_location}/{project}/src', '-s', test, '-rf', self.results_folder],)
+        logging.info([f'{self.gatling_location}/bin/gatling.sh', '-nr', '-sf', f'{self.tests_location}/{project}/src', '-s', test, '-rf', self.results_folder],)
         self.test_process = subprocess.Popen([f'{self.gatling_location}/bin/gatling.sh', '-nr', '-sf', f'{self.tests_location}/{project}/src', '-s', test, '-rf', self.results_folder],
                                              cwd=f'{self.tests_location}/{project}',
                                              env=environ,
@@ -94,27 +91,27 @@ class TaskHandler(threading.Thread):
                 self.test_process.terminate()
                 with self.lock:
                     self.state.status = "Cloned"
-                logger.error("gatling output ended unexpectedly, gatling process terminated")
+                logging.error("gatling output ended unexpectedly, gatling process terminated")
                 break
             else:
-                logger.debug(line.decode('utf-8').rstrip())
+                logging.debug(line.decode('utf-8').rstrip())
                 if line == b'':
                     self.test_process.terminate()
-                    logger.error("gatling output ended unexpectedly, gatling process terminated")
+                    logging.error("gatling output ended unexpectedly, gatling process terminated")
                     break
                 elif f"Simulation {test} started".encode('utf-8') in line:
                     with self.lock:
                         self.state.status = "Test_Running"
-                    logger.info(f"Test {test} started")
+                    logging.info(f"Test {test} started")
                 elif b"No tests to run for Gatling" in line:
                     self.test_process.terminate()
-                    logger.error(f"No test was run, check the test class provided: {test}")
+                    logging.error(f"No test was run, check the test class provided: {test}")
                     break
                 elif f"Simulation {test} completed".encode('utf-8') in line:
                     self.test_process.terminate()
                     with self.lock:
                         self.state.status = "Test_Finished"
-                    logger.info(f"Test {test} finished!")
+                    logging.info(f"Test {test} finished!")
                     break
 
     def stop_test(self):
@@ -122,4 +119,4 @@ class TaskHandler(threading.Thread):
             self.test_process.terminate()
             with self.lock:
                 self.state.status = "Cloned"
-            logger.info("Stopped test")
+            logging.info("Stopped test")

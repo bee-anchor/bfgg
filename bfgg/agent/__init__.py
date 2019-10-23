@@ -1,4 +1,4 @@
-import logging
+import logging.config
 import socket
 import zmq
 import threading
@@ -9,9 +9,17 @@ from bfgg.agent.results_sender import ResultsSender
 from bfgg.agent.state import State
 from dotenv import load_dotenv
 
+DEFAULT_LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'loggers': {
+        '': {
+            'level': os.getenv('LOG_LEVEL'),
+        }
+    }
+}
 
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+logging.config.dictConfig(DEFAULT_LOGGING)
 
 
 def get_identity(controller_host):
@@ -19,8 +27,8 @@ def get_identity(controller_host):
     try:
         s.connect((controller_host, 80))
     except Exception as e:
-        logger.critical("Failed to get agent ip")
-        logger.critical(e)
+        logging.critical("Failed to get agent ip")
+        logging.critical(e)
         return None
     ip = (s.getsockname()[0])
     s.close()

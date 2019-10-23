@@ -3,14 +3,11 @@ import shutil
 import threading
 import subprocess
 import zmq
-import logging
+import logging.config
 import boto3
 from datetime import datetime
 from bfgg.controller.state import State
 from bfgg.utils.messages import START_RESULTS, RESULT
-
-
-logger = logging.getLogger(__name__)
 
 
 class ResultsGetter:
@@ -41,7 +38,7 @@ class ResultsGetter:
 
     @staticmethod
     def _send_recv_start_message(socket, agent):
-        logger.debug([
+        logging.debug([
             START_RESULTS,
             b"controller",
             b"Send latest",
@@ -51,14 +48,14 @@ class ResultsGetter:
             b"controller",
             b"Send latest",
         ])
-        logger.debug("Start message sent")
+        logging.debug("Start message sent")
         resp = socket.recv_multipart()
-        logger.debug(resp)
+        logging.debug(resp)
         [type, ip, message] = resp
         assert ip == agent and message == b"OK"
 
     def _send_chunk_message(self, socket, offset):
-        logger.debug([
+        logging.debug([
             RESULT,
             b"controller",
             str(offset).encode('utf-8'),
@@ -70,7 +67,7 @@ class ResultsGetter:
             str(offset).encode('utf-8'),
             str(self.CHUNK_SIZE).encode('utf-8')
         ])
-        logger.debug("Chunk message sent")
+        logging.debug("Chunk message sent")
 
     @staticmethod
     def _get_chunk(socket):
@@ -82,7 +79,7 @@ class ResultsGetter:
 
             else:
                 raise
-        logger.debug("Chunk received")
+        logging.debug("Chunk received")
         return chunk[0]
 
     def _data_getter_loop(self, socket, file, agent: str):
@@ -107,7 +104,7 @@ class ResultsGetter:
             size = len(chunk)
             total += size
             if size < self.CHUNK_SIZE:
-                logger.info(f"Result retrieval completed for {agent}")
+                logging.info(f"Result retrieval completed for {agent}")
                 socket.close()
                 break
 
@@ -157,7 +154,7 @@ class ResultsGetter:
             getter = self.context.socket(zmq.DEALER)
             getter.set_hwm(self.PIPELINE)
             str_agent = agent.decode('utf-8')
-            logger.info(f"Starting receiving results from {str_agent}")
+            logging.info(f"Starting receiving results from {str_agent}")
             getter.setsockopt(zmq.IDENTITY, agent)
             getter.connect(f"tcp://{str_agent}:{self.port}")
 
@@ -166,7 +163,7 @@ class ResultsGetter:
             with open(os.path.join(self.results_folder, str_agent.replace('.', '_')) + '.log', "w+") as f:
                 self._data_getter_loop(getter, f, str_agent)
 
-        logger.info([f'{self.gatling_location}/bin/gatling.sh', '-ro', self.results_folder])
+        logging.info([f'{self.gatling_location}/bin/gatling.sh', '-ro', self.results_folder])
         report_process = subprocess.Popen(
             [f'{self.gatling_location}/bin/gatling.sh', '-ro', self.results_folder],
             cwd=self.results_folder,
@@ -175,7 +172,7 @@ class ResultsGetter:
             stderr=subprocess.STDOUT)
         stdout, stderror = report_process.communicate()
         stdout = stdout.decode('utf-8')
-        logger.info(stdout)
+        logging.info(stdout)
 
         url = self._upload_results()
         return url

@@ -1,5 +1,5 @@
 import os
-import logging
+import logging.config
 from dotenv import load_dotenv
 from bfgg.controller.task_pusher import TaskPusher
 from bfgg.controller.agent_poller import AgentPoller
@@ -9,9 +9,17 @@ from flask import Flask
 from flask_cors import CORS
 from bfgg.controller import api
 
+DEFAULT_LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'loggers': {
+        '': {
+            'level': os.getenv('LOG_LEVEL'),
+        }
+    }
+}
 
-logging.basicConfig(level=logging.INFO)
-
+logging.config.dictConfig(DEFAULT_LOGGING)
 
 def create_app():
     app = Flask(__name__)

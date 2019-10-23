@@ -1,12 +1,9 @@
 import os
 import threading
 import zmq
-import logging
+import logging.config
 from bfgg.agent.state import State
 from bfgg.utils.messages import START_RESULTS
-
-
-logger = logging.getLogger(__name__)
 
 
 class ResultsSender(threading.Thread):
@@ -31,9 +28,9 @@ class ResultsSender(threading.Thread):
         return path
 
     def _send_start_message(self, identity, socket):
-        logger.debug([identity, START_RESULTS, self.state.identity, b"OK"])
+        logging.debug([identity, START_RESULTS, self.state.identity, b"OK"])
         socket.send_multipart([identity, START_RESULTS, self.state.identity, b"OK"])
-        logger.debug("Start response sent")
+        logging.debug("Start response sent")
 
     def _send_data_loop(self, identity, socket, file):
         # Start sending loop
@@ -41,14 +38,14 @@ class ResultsSender(threading.Thread):
             # First frame in each message is the sender identity
             try:
                 message = socket.recv_multipart()
-                logger.debug("Send chunk message received")
-                logger.debug(message)
+                logging.debug("Send chunk message received")
+                logging.debug(message)
                 [identity, type, ip, offset, chunk] = message
             except zmq.ZMQError as e:
                 if e.errno == zmq.ETERM:
                     break  # shutting down, quit
                 else:
-                    logger.error(e)
+                    logging.error(e)
                     break
 
             offset = int(offset.decode('utf-8'))
@@ -59,12 +56,12 @@ class ResultsSender(threading.Thread):
             data = file.read(chunk)
 
             # Send resulting chunk to client
-            logger.debug("Sending log data")
+            logging.debug("Sending log data")
             socket.send_multipart([identity, data])
-            logger.debug("Log data sent")
+            logging.debug("Log data sent")
             size = len(data)
             if size < chunk:
-                logger.info("Finished sending result log")
+                logging.info("Finished sending result log")
                 break
 
 
@@ -72,7 +69,7 @@ class ResultsSender(threading.Thread):
         sender = self.context.socket(zmq.ROUTER)
         sender.set_hwm(self.PIPELINE)
         sender.bind(f"tcp://*:{self.port}")
-        logger.info("ResultsSender thread started")
+        logging.info("ResultsSender thread started")
 
         while True:
             message = sender.recv_multipart()
@@ -83,7 +80,7 @@ class ResultsSender(threading.Thread):
             else:
                 [identity, type, ip, info] = message
             if type == START_RESULTS:
-                logger.info("Starting sending results")
+                logging.info("Starting sending results")
                 self._send_start_message(identity, sender)
                 file = open(self._get_latest_logfile(), "rb")
                 self._send_data_loop(identity, sender, file)

@@ -1,11 +1,8 @@
-import logging
+import logging.config
 from typing import Union, Dict
 from dataclasses import dataclass
 from collections import deque
 from datetime import datetime
-
-
-logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -33,12 +30,12 @@ class State:
     def remove_agent(self, agent):
         if agent in self._connected_agents:
             self._connected_agents.pop(agent)
-            logger.info(f"{agent} disconnected")
+            logging.info(f"{agent} disconnected")
 
     def update_agent(self, agent, state):
         if agent not in self._connected_agents:
             self._connected_agents[agent] = Agent(state, int(datetime.now().timestamp()))
-            logger.info(f"{agent} connected, state: {state}")
+            logging.info(f"{agent} connected, state: {state}")
         else:
             self._connected_agents[agent] = Agent(state, int(datetime.now().timestamp()))
 
@@ -51,7 +48,7 @@ class State:
             # not heard from agent for over 20 seconds, something is wrong....
             if current_time - info.last_heard_from > 20:
                 self._connected_agents.pop(agent)
-                logger.warning(f"Agent {agent.decode('utf-8')} has not been heard from for a while, removing from connected list")
+                logging.warning(f"Agent {agent.decode('utf-8')} has not been heard from for a while, removing from connected list")
 
     def add_task(self, task: Task):
         self._task_list.append(task)
