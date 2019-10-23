@@ -9,6 +9,8 @@ from bfgg.agent.results_sender import ResultsSender
 from bfgg.agent.state import State
 from dotenv import load_dotenv
 
+load_dotenv()
+
 DEFAULT_LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -36,7 +38,6 @@ def get_identity(controller_host):
 
 
 def create_agent():
-    load_dotenv()
     controller_host = os.getenv('CONTROLLER_HOST')
     taskpusher_port = os.getenv('TASK_PORT')
     poller_port = os.getenv('POLLER_PORT')

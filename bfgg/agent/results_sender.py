@@ -9,7 +9,6 @@ from bfgg.utils.messages import START_RESULTS
 class ResultsSender(threading.Thread):
 
     CHUNK_SIZE = 250000
-    PIPELINE = 10
 
     def __init__(self, lock: threading.Lock, context: zmq.Context, port, state: State, results_folder):
         threading.Thread.__init__(self)
@@ -24,7 +23,6 @@ class ResultsSender(threading.Thread):
         folders = [os.path.join(self.results_folder, x) for x in result_folders if os.path.isdir(os.path.join(self.results_folder, x))]
         newest_folder = max(folders, key=os.path.getmtime)
         path = os.path.join(newest_folder, "simulation.log")
-        print(path)
         return path
 
     def _send_start_message(self, identity, socket):
@@ -67,18 +65,12 @@ class ResultsSender(threading.Thread):
 
     def run(self):
         sender = self.context.socket(zmq.ROUTER)
-        sender.set_hwm(self.PIPELINE)
         sender.bind(f"tcp://*:{self.port}")
         logging.info("ResultsSender thread started")
 
         while True:
             message = sender.recv_multipart()
-            # ignore these if here: will be one of the batch of send chunk messages
-            if len(message) == 5:
-                continue
-            # new message to start sending files
-            else:
-                [identity, type, ip, info] = message
+            [identity, type, ip, info] = message
             if type == START_RESULTS:
                 logging.info("Starting sending results")
                 self._send_start_message(identity, sender)

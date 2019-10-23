@@ -9,6 +9,8 @@ from flask import Flask
 from flask_cors import CORS
 from bfgg.controller import api
 
+load_dotenv()
+
 DEFAULT_LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -29,7 +31,6 @@ def create_app():
 
 
 def create_controller():
-    load_dotenv()
     taskpusher_port = os.getenv('TASK_PORT')
     poller_port = os.getenv('POLLER_PORT')
 

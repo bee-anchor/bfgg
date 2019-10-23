@@ -13,7 +13,6 @@ from bfgg.utils.messages import START_RESULTS, RESULT
 class ResultsGetter:
 
     CHUNK_SIZE = 250000
-    PIPELINE = 10
 
     def __init__(self, lock: threading.Lock, context: zmq.Context, port, state: State, results_folder, gatling_location, s3_bucket, s3_region):
         self.lock = lock
@@ -83,28 +82,21 @@ class ResultsGetter:
         return chunk[0]
 
     def _data_getter_loop(self, socket, file, agent: str):
-        credit = self.PIPELINE  # Up to PIPELINE chunks in transit
         total = 0  # Total bytes received
         chunks = 0  # Total chunks received
         offset = 0  # Offset of next chunk request
         while True:
-            while credit:
-                # ask for next chunk
-                self._send_chunk_message(socket, offset)
-
-                offset += self.CHUNK_SIZE
-                credit -= 1
-
+            self._send_chunk_message(socket, offset)
             chunk = self._get_chunk(socket)
-
             file.write(chunk.decode('utf-8'))
 
             chunks += 1
-            credit += 1
+            offset += self.CHUNK_SIZE
             size = len(chunk)
             total += size
             if size < self.CHUNK_SIZE:
                 logging.info(f"Result retrieval completed for {agent}")
+                logging.info(f"Bytes sent: {total}")
                 socket.close()
                 break
 
@@ -152,7 +144,6 @@ class ResultsGetter:
 
         for agent in current_agents:
             getter = self.context.socket(zmq.DEALER)
-            getter.set_hwm(self.PIPELINE)
             str_agent = agent.decode('utf-8')
             logging.info(f"Starting receiving results from {str_agent}")
             getter.setsockopt(zmq.IDENTITY, agent)
