@@ -33,18 +33,9 @@ The Controller and Agents have three main parts that comprises their inter-commu
        Controller                                      Agent
 
 +-----------------------+                    +--------------------------+
-|                       |      Register      |                          |
-|                       +<-------------------+                          |
-|      Registrator      |                    |       Registration       |
-|       (thread)        |                    |                          |
-|                       +------------------->+                          |
-|                       |    Acknowledge     |                          |
-+-----------------------+                    +--------------------------+
-
-+-----------------------+                    +--------------------------+
 |                       |                    |                          |
 |                       |                    |                          |
-|  Agent State Puller   +<-------------------+       State Sender       |
+|  Agent State Poller   +<-------------------+       State Sender       |
 |       (thread)        |   Current State    |        (thread)          |
 |                       |                    |                          |
 |                       |                    |                          |
@@ -59,13 +50,25 @@ The Controller and Agents have three main parts that comprises their inter-commu
 |                       |                    |                          |
 +-----------------------+                    +--------------------------+
 
+
++-----------------------+                    +--------------------------+
+|                       |  Request results   |                          |
+|                       +------------------->+                          |
+|     Results Getter    |                    |       Results Sender     |
+|                       |                    |          (thread)        |
+|                       +<-------------------+                          |
+|                       |    Send results    |                          |
++-----------------------+                    +--------------------------+
 ```
 
-The controller has a registrator thread that always runs, waiting for new agents to join the cluster.
-After an agent has registered with the controller, the controller's 'Agent State Puller' sits listening for messages from the agents informing it
-of their current status. It expects to hear from them every few seconds or will consider the agent 'dead'.
+The controller's 'Agent State Poller' sits listening for messages from the agents informing it
+of their current status. When it sees a new one it adds it to it's list of agents it currently knows about.
+It expects to hear from them every few seconds or will consider the agent 'dead'.
 Along side this the agents run a 'Task Handler' that sits listening for commands from the controller. When a task is scheduled from the API or UI,
-the controller sends a message to all connected agents in the correct state to perform the task, knowing when it is done via a status change from the 'Agent State Puller'
+the controller sends a message to all connected agents in the correct state to perform the task, knowing when it is done via a status change from the 'Agent State Poller'.
+There is an additional thread that runs on the agent for sending results to the controller. The controller will request the last results from each
+agent on demand and then push them up to S3. 
+
 
 Additionally there is an API that runs alongside this on the controller for sending tasks and getting cluster status.
 There will also be a react front end eventually driven by the APIs.
@@ -75,7 +78,7 @@ There will also be a react front end eventually driven by the APIs.
 ### Configuration
 
 There is a .env file in the project where required config values are defined.
-These can be overridden by environment variables, and generally only the CONTROLLER_HOST will need to be overridden when deploying a cluster.
+These can be overridden by environment variables, and some will need to be overridden when deploying a cluster.
 
 ### The Controller:
 
@@ -93,7 +96,6 @@ Run locally with:
 Prereqs are:
 * Python 3
 * Java 8
-* SBT (scala build tool)
 * Git
 * requirements.txt libraries
 
@@ -102,6 +104,11 @@ Run locally with:
 `python run_agent.py`
 
 ## APIs
+
+Get the status of all connected agents
+```
+GET /status
+```
 
 Clone the repo containing the Gatling test code
 ```
@@ -112,18 +119,20 @@ POST /clone
 }
 ```
 
-Instruct all agents to start sbt - helps with coordinating test kick off time
-```
-POST /prep
-```
-
-Instruct all agents to start the test specified
+Instruct all agents to start the test specified. Can optionally send additional java opts for configuring the
+java process and setting parameters for a test.
 ```
 POST /start
 
 {
-    "testClass": "testClass"
+	"project": "project",
+	"testClass": "testClassToRun",
+	"javaOpts": "-Xmx14G -DTEST=hello"
 }
+```
+Once a test has run on the agents, get the Gatling results from that run
+```
+GET /results
 ```
 
 
