@@ -4,7 +4,6 @@ from concurrent import futures
 import zmq
 import subprocess
 import logging.config
-from pathlib import Path
 from bfgg.utils.messages import CLONE, START_TEST, STOP_TEST
 from bfgg.agent.state import State
 
@@ -48,7 +47,7 @@ class TaskHandler(threading.Thread):
         project_name = project[project.find('/') + 1: project.find('.git')]
         logging.info(f"Getting {project}")
         resp = subprocess.Popen(['git', 'clone', project],
-                                cwd=str(Path.home()),
+                                cwd=self.tests_location,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT)
         stdout, stderror = resp.communicate()
@@ -58,8 +57,11 @@ class TaskHandler(threading.Thread):
                 self.state.status = "Cloned"
             logging.info(f"Cloned {project_name}")
         elif f"already exists and is not an empty directory" in stdout:
-            resp = subprocess.Popen(['git', 'pull'],
-                                    cwd=f"{str(Path.home())}/{project_name}",
+            command = (f"git -C {os.path.join(self.tests_location, project_name)} fetch && "
+                       f"git -C {os.path.join(self.tests_location, project_name)} reset origin/master --hard")
+            resp = subprocess.Popen(command,
+                                    shell=True,
+                                    cwd=f"{self.tests_location}/{project_name}",
                                     stdout=subprocess.PIPE,
                                     stderr=subprocess.STDOUT)
             stdout, stderror = resp.communicate()
