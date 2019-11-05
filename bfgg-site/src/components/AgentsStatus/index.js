@@ -1,5 +1,9 @@
 import React from 'react';
 import axios from 'axios';
+import PropTypes from 'prop-types';
+import { withStyles } from '@material-ui/core/styles';
+import { Table, TableHead, TableBody, TableRow, TableCell, Paper } from '@material-ui/core';
+
 class AgentStatus extends React.Component  {
     constructor(props) {
         super(props);
@@ -7,7 +11,7 @@ class AgentStatus extends React.Component  {
     }
 
     getAgentState() {
-        axios.get("http://34.242.147.76:8000/status")
+        axios.get("http://localhost:8000/status")
         .then((res) => this.setState({agents: res.data}))
     }
     
@@ -27,20 +31,26 @@ class AgentStatus extends React.Component  {
     render() {
         return (
             <div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Agent</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
+            <Paper>
+            <Table aria-label="simple table">
+                <TableHead>
+                    <TableRow>
+                        <TableCell>Agent</TableCell>
+                        <TableCell>Status</TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
                     < AgentRows agents={this.state.agents}/>
-                </tbody>
-            </table>
+                </TableBody>
+            </Table>
+            </Paper>
             </div>
     );
     }
+}
+
+AgentStatus.propTypes = {
+    classes: PropTypes.object.isRequired,
 }
 
 function AgentRows(props) {
@@ -52,19 +62,28 @@ function AgentRows(props) {
         });
 
     } else {
-        return <tr></tr>
+        return <TableRow></TableRow>
     }
+}
+
+AgentRows.propTypes = {
+    agents: PropTypes.object,
 }
 
 function AgentRow(props) {
     const agentIp = props.agentIp;
     const agentStatus = props.agentStatus;
     return (
-        <tr>
-            <td>{agentIp}</td>
-            <td>{agentStatus}</td>
-        </tr>
+        <TableRow>
+            <TableCell>{agentIp}</TableCell>
+            <TableCell>{agentStatus}</TableCell>
+        </TableRow>
     )
+}
+
+AgentRow.propTypes = {
+    agentIp: PropTypes.string,
+    agentStatus: PropTypes.string,
 }
 
 export default AgentStatus
