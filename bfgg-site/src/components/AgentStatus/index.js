@@ -1,7 +1,6 @@
 import React from 'react';
 import axios from 'axios';
 import PropTypes from 'prop-types';
-import { withStyles } from '@material-ui/core/styles';
 import { Table, TableHead, TableBody, TableRow, TableCell, Paper } from '@material-ui/core';
 
 class AgentStatus extends React.Component  {
@@ -49,13 +48,9 @@ class AgentStatus extends React.Component  {
     }
 }
 
-AgentStatus.propTypes = {
-    classes: PropTypes.object.isRequired,
-}
-
 function AgentRows(props) {
     const agents = props.agents;
-    console.log(agents)
+    console.log(agents);
     if (Object.keys(agents).length > 0) {
         return Object.entries(agents).map(([key, value]) => {
             return <AgentRow key={key} agentIp={key} agentStatus={value}/>
@@ -68,7 +63,7 @@ function AgentRows(props) {
 
 AgentRows.propTypes = {
     agents: PropTypes.object,
-}
+};
 
 function AgentRow(props) {
     const agentIp = props.agentIp;
@@ -84,6 +79,6 @@ function AgentRow(props) {
 AgentRow.propTypes = {
     agentIp: PropTypes.string,
     agentStatus: PropTypes.string,
-}
+};
 
 export default AgentStatus

@@ -1,12 +1,18 @@
 import React from 'react';
-import { makeStyles, createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
-import { CssBaseline, Typography, Container } from '@material-ui/core';
-import logo from './logo.svg';
-import AgentStatus from './components/AgentsStatus'
+import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
+import { CssBaseline, Grid } from '@material-ui/core';
+import { amber, lightGreen, grey } from '@material-ui/core/colors';
+import SideBar from './components/SideBar'
+import MainBody from './components/MainBody'
 
 const theme = createMuiTheme({
   palette: {
+    primary: lightGreen,
+    secondary: amber,
     type: 'dark',
+    background: {
+      default: grey["600"]
+    }
   }
 });
 
@@ -14,22 +20,21 @@ export default function App() {
 
   return (
     <ThemeProvider theme={theme}>
-    <CssBaseline>
-      <head>
-      <meta
-          name="viewport"
-          content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no"
-      />
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
-      </head>
-    <Container maxWidth="xl">
-    <Typography component="div">
-      <Typography component='h1' variant='h1' align='center' gutterBottom={true}>BFGG</Typography>
-        <AgentStatus />
-        </Typography>
-        </Container>
-        </CssBaseline>
-        </ThemeProvider>
+      <CssBaseline>
+
+        <head>
+          <meta
+            name="viewport"
+            content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no"
+          />
+          <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
+        </head>
+
+          <SideBar />
+          <MainBody />
+
+      </CssBaseline>
+    </ThemeProvider>
   );
 }
 
