@@ -1,52 +1,42 @@
-import React from 'react';
-import axios from 'axios';
+import React  from 'react';
 import PropTypes from 'prop-types';
-import { Table, TableHead, TableBody, TableRow, TableCell, Paper } from '@material-ui/core';
+import {Table, TableHead, TableBody, TableRow, TableCell, Card} from '@material-ui/core';
+import { makeStyles } from '@material-ui/core/styles';
 
-class AgentStatus extends React.Component  {
-    constructor(props) {
-        super(props);
-        this.state = {agents: {}};
+const useStyles = makeStyles({
+    card: {
+        marginTop: '40px',
+        paddingLeft: '1%',
+        paddingRight: '1%',
+        paddingBottom: '1%',
     }
+});
 
-    getAgentState() {
-        axios.get("http://localhost:8000/status")
-        .then((res) => this.setState({agents: res.data}))
-    }
-    
-    componentDidMount() {
-        this.getAgentState()
-        this.timerID = setInterval(
-            () => this.getAgentState(),
-            5000
-        );
-    }
+export default function AgentStatus(props)  {
+    const classes = useStyles();
 
-    componentWillUnmount() {
-    clearInterval(this.timerID);
-    }
-
-
-    render() {
-        return (
-            <div>
-            <Paper>
-            <Table aria-label="simple table">
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Agent</TableCell>
-                        <TableCell>Status</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    < AgentRows agents={this.state.agents}/>
-                </TableBody>
-            </Table>
-            </Paper>
-            </div>
+    return (
+        <div>
+        <Card className={classes.card}>
+        <Table aria-label="simple table">
+            <TableHead>
+                <TableRow>
+                    <TableCell>Agent</TableCell>
+                    <TableCell>Status</TableCell>
+                </TableRow>
+            </TableHead>
+            <TableBody>
+                < AgentRows agents={props.agents}/>
+            </TableBody>
+        </Table>
+        </Card>
+        </div>
     );
-    }
 }
+
+AgentStatus.propTypes = {
+    agents: PropTypes.object,
+};
 
 function AgentRows(props) {
     const agents = props.agents;
@@ -80,5 +70,3 @@ AgentRow.propTypes = {
     agentIp: PropTypes.string,
     agentStatus: PropTypes.string,
 };
-
-export default AgentStatus

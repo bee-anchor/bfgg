@@ -1,10 +1,11 @@
 import React from 'react';
 import axios from 'axios';
-import PropTypes from 'prop-types';
 import { Card, Button } from '@material-ui/core';
-import { withStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles';
+import PropTypes from "prop-types";
+import CloneForm from "../CloneForm";
 
-const styles = {
+const useStyles = makeStyles({
     card: {
         marginTop: '40px',
         paddingTop: '1%',
@@ -12,36 +13,42 @@ const styles = {
         paddingRight: '1%',
         paddingBottom: '1%',
     },
-}
+});
 
-class StopForm extends React.Component  {
+export default function StopForm(props)  {
+    const classes = useStyles();
+    const { setSnackbarOpen, setSnackbar } = props;
 
-    sendStop() {
+    const sendStop = () => {
         axios.post("http://localhost:8000/stop")
-        .then()
-    }
+        .then(() => {
+                setSnackbar({message: 'Stop requested', type: 'success'});
+                setSnackbarOpen(true)
+            },
+            () => {
+                setSnackbar({message: 'Failed to stop test', type: 'error'});
+                setSnackbarOpen(true)
+            })
+    };
     
-    render() {
-        return (
-            <Card className={this.props.classes.card}>
-            <form noValidate autoComplete="off">
-                <Button
-                        fullWidth
-                        variant="contained"
-                        color="secondary"
-                        onClick={this.sendStop}
-                        size='large'
-                    >
-                        Stop Test
-                    </Button>
-            </form>
-            </Card>
+    return (
+        <Card className={classes.card}>
+        <form noValidate autoComplete="off">
+            <Button
+                    fullWidth
+                    variant="contained"
+                    color="secondary"
+                    onClick={sendStop}
+                    size='large'
+                >
+                    Stop Test
+                </Button>
+        </form>
+        </Card>
     );
-    }
 }
 
 StopForm.propTypes = {
-    classes: PropTypes.object.isRequired,
-  };
-
-export default withStyles(styles)(StopForm)
+    setSnackbarOpen: PropTypes.func,
+    setSnackbar: PropTypes.func,
+};

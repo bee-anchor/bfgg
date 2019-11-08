@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
-import PropTypes from 'prop-types';
 import { Card, TextField, Button } from '@material-ui/core';
-import { withStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles';
+import PropTypes from "prop-types";
+import CloneForm from "../CloneForm";
 
-const styles = {
+const useStyles = makeStyles({
     card: {
         marginTop: '40px',
         paddingLeft: '1%',
@@ -14,95 +15,85 @@ const styles = {
     button: {
         marginTop: '1%'
     }
-}
+});
 
-class StartForm extends React.Component  {
-    constructor(props) {
-        super(props);
-        this.state = {
-            name: '',
-            test: '',
-            javaOpts: ''
-        };
+export default function StartForm(props) {
+    const classes = useStyles();
+    const { setSnackbarOpen, setSnackbar } = props;
+    const [name, setName] = useState();
+    const [test, setTest] = useState();
+    const [javaOpts, setJavaOpts] = useState();
 
-        this.handleChange = this.handleChange.bind(this);
-        this.sendStart = this.sendStart.bind(this);
-    }
-
-    sendStart() {
+    const sendStart = () => {
         console.log({
-            "project": this.state.name,
-            "testClass": this.state.test,
-            "javaOpts": this.state.javaOpts
+            "project": name,
+            "testClass": test,
+            "javaOpts": javaOpts
         });
         axios.post("http://localhost:8000/start", {
-            "project": this.state.name,
-            "testClass": this.state.test,
-            "javaOpts": this.state.javaOpts
+            "project": name,
+            "testClass": test,
+            "javaOpts": javaOpts
         })
-        .then()
-    }
+        .then(() => {
+                setSnackbar({message: 'Start test requested', type: 'success'});
+                setSnackbarOpen(true)
+            },
+            () => {
+                setSnackbar({message: 'Failed to start test', type: 'error'});
+                setSnackbarOpen(true)
+            })
+    };
 
-    handleChange(fieldType) {
-        return (event) => {
-            this.setState({[fieldType]: event.target.value})
-        }
-    }
-
-    
-    render() {
-        return (
-            <Card className={this.props.classes.card}>
-            <form noValidate autoComplete="off">
-                <TextField
-                    id="project-name"
-                    label="Project"
-                    placeholder="super6-perf"
-                    helperText="The name of the repo containing the tests"
+    return (
+        <Card className={classes.card}>
+        <form noValidate autoComplete="off">
+            <TextField
+                id="project-name"
+                label="Project"
+                placeholder="super6-perf"
+                helperText="The name of the repo containing the tests"
+                fullWidth
+                margin="normal"
+                variant="filled"
+                onChange={e => setName(e.target.value)}
+            />
+            <TextField
+                id="test-class"
+                label="Test Class"
+                placeholder="InPlayWebSpiking_custom"
+                helperText="The test class to be run"
+                fullWidth
+                margin="normal"
+                variant="filled"
+                onChange={e => setTest(e.target.value)}
+            />
+            <TextField
+                id="java-opts"
+                label="JavaOpts"
+                placeholder="-Xmx14G -DUSERS=33 -DDURATION=10minutes"
+                helperText="Additional javaOpts to be passed to the test"
+                fullWidth
+                margin="normal"
+                variant="filled"
+                onChange={e => setJavaOpts(e.target.value)}
+            />
+            <Button
                     fullWidth
-                    margin="normal"
-                    variant="filled"
-                    onChange={this.handleChange('name')}
-                />
-                <TextField
-                    id="test-class"
-                    label="Test Class"
-                    placeholder="InPlayWebSpiking_custom"
-                    helperText="The test class to be run"
-                    fullWidth
-                    margin="normal"
-                    variant="filled"
-                    onChange={this.handleChange('test')}
-                />
-                <TextField
-                    id="java-opts"
-                    label="JavaOpts"
-                    placeholder="-Xmx14G -DUSERS=33 -DDURATION=10minutes"
-                    helperText="Additional javaOpts to be passed to the test"
-                    fullWidth
-                    margin="normal"
-                    variant="filled"
-                    onChange={this.handleChange('javaOpts')}
-                />
-                <Button
-                        fullWidth
-                        variant="contained"
-                        color="primary"
-                        onClick={this.sendStart}
-                        size='large'
-                        className={this.props.classes.button}
-                        onClick={this.sendStart}
-                    >
-                        Start Test
-                    </Button>
-            </form>
-            </Card>
+                    variant="contained"
+                    color="primary"
+                    size='large'
+                    className={classes.button}
+                    onClick={sendStart}
+                >
+                    Start Test
+                </Button>
+        </form>
+        </Card>
     );
-    }
 }
 
 StartForm.propTypes = {
-    classes: PropTypes.object.isRequired,
-  };
-
-export default withStyles(styles)(StartForm)
+    setSnackbarOpen: PropTypes.func,
+    setSnackbar: PropTypes.func,
+};
