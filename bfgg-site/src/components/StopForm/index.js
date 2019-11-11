@@ -3,7 +3,6 @@ import axios from 'axios';
 import { Card, Button } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from "prop-types";
-import CloneForm from "../CloneForm";
 
 const useStyles = makeStyles({
     card: {
@@ -20,7 +19,8 @@ export default function StopForm(props)  {
     const { setSnackbarOpen, setSnackbar } = props;
 
     const sendStop = () => {
-        axios.post("http://localhost:8000/stop")
+        const url = `http://${process.env.REACT_APP_CONTROLLER_HOST}:8000/stop`;
+        axios.post(url)
         .then(() => {
                 setSnackbar({message: 'Stop requested', type: 'success'});
                 setSnackbarOpen(true)

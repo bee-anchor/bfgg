@@ -3,7 +3,6 @@ import axios from 'axios';
 import { Card, TextField, Button } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from "prop-types";
-import CloneForm from "../CloneForm";
 
 const useStyles = makeStyles({
     card: {
@@ -30,7 +29,8 @@ export default function StartForm(props) {
             "testClass": test,
             "javaOpts": javaOpts
         });
-        axios.post("http://localhost:8000/start", {
+        const url = `http://${process.env.REACT_APP_CONTROLLER_HOST}:8000/start`;
+        axios.post(url, {
             "project": name,
             "testClass": test,
             "javaOpts": javaOpts

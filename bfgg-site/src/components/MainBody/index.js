@@ -23,7 +23,8 @@ export default function MainBody() {
     const [snackbar, setSnackbar] = useState({message: '', type: ''});
 
     const getAgentState = () => {
-        axios.get("http://localhost:8000/status")
+        const url = `http://${process.env.REACT_APP_CONTROLLER_HOST}:8000/status`;
+        axios.get(url)
             .then((res) => setAgents(res.data))
     };
 

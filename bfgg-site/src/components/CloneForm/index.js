@@ -20,13 +20,14 @@ const useStyles = makeStyles({
 });
 
 export default function CloneForm(props) {
-    const [url, setUrl] = useState();
+    const [repo, setRepo] = useState();
     const { setSnackbarOpen, setSnackbar } = props;
     const classes = useStyles();
 
     const sendClone = () => {
-        axios.post("http://localhost:8000/clone", {
-            "repo": url
+        const url = `http://${process.env.REACT_APP_CONTROLLER_HOST}:8000/clone`;
+        axios.post(url, {
+            "repo": repo
         })
         .then(() => {
                 setSnackbar({message: 'Clone requested', type: 'success'});
@@ -49,7 +50,7 @@ export default function CloneForm(props) {
                     fullWidth
                     margin="normal"
                     variant="outlined"
-                    onChange={e => setUrl(e.target.value)}
+                    onChange={e => setRepo(e.target.value)}
                 />
             </Grid>
             <Grid item xs>
