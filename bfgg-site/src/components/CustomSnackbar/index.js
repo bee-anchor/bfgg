@@ -41,7 +41,7 @@ const useStyles = makeStyles({
     },
 });
 
-export default function CustomSnackbar(props) {
+function CustomSnackbar(props) {
     const classes = useStyles();
     const { setSnackbarOpen, snackbarOpen, message, type} = props;
     const Icon = variantIcon[type];
@@ -56,7 +56,7 @@ export default function CustomSnackbar(props) {
             horizontal: 'right',
         }}
         open={snackbarOpen}
-        autoHideDuration={10000}
+        autoHideDuration={6000}
         onClose={handleSnackClose}
     >
         <SnackbarContent
@@ -83,3 +83,4 @@ CustomSnackbar.propTypes = {
     type: PropTypes.string,
 };
 
+export default React.memo(CustomSnackbar)
