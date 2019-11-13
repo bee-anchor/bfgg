@@ -8,17 +8,18 @@ from threading import Lock
 def clone_repo(project: str, tests_location: str, lock: Lock, state: State):
     project_name = project[project.find('/') + 1: project.find('.git')]
     logging.info(f"Getting {project}")
-    resp = subprocess.Popen(['git', 'clone', project],
+    resp = subprocess.Popen(['git', 'clone', project, '--progress'],
                             cwd=tests_location,
                             stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT)
+                            stderr=subprocess.PIPE)
     stdout, stderror = resp.communicate()
     stdout = stdout.decode('utf-8')
-    if f"Cloning into '{project_name}'" in stdout:
+    stderror = stderror.decode('utf-8')
+    if "Receiving objects: 100%" in stderror:
         with lock:
             state.status = "Cloned"
         logging.info(f"Cloned {project_name}")
-    elif f"already exists and is not an empty directory" in stdout:
+    elif "already exists and is not an empty directory" in stderror:
         command = (f"git -C {os.path.join(tests_location, project_name)} fetch && "
                    f"git -C {os.path.join(tests_location, project_name)} reset origin/master --hard")
         resp = subprocess.Popen(command,
@@ -31,4 +32,11 @@ def clone_repo(project: str, tests_location: str, lock: Lock, state: State):
         with lock:
             state.status = "Cloned"
         logging.info(f"Got latest {project_name}")
-    logging.debug(stdout)
+    elif "fatal: Could not read from remote repository" in stderror:
+        logging.info("Could not clone repository. Check git url and access rights.")
+    _log_if_present(stdout)
+    _log_if_present(stderror)
+
+def _log_if_present(std):
+    if std:
+        logging.debug(std)
