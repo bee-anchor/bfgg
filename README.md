@@ -80,28 +80,26 @@ There will also be a react front end eventually driven by the APIs.
 There is a .env file in the project where required config values are defined.
 These can be overridden by environment variables, and some will need to be overridden when deploying a cluster.
 
-### The Controller:
+### Prereqs
 
-Prereqs are:
-* Python 3
-* requirements.txt libraries
-
-Run locally with:
-
-`twistd -n web --wsgi run_controller.app --port tcp:8000`
-
-
-### The Agents
-
-Prereqs are:
-* Python 3
+* Python3
 * Java 8
 * Git
-* requirements.txt libraries
+* Gatling (https://gatling.io/open-source - download and unzip somewhere)
 
-Run locally with:
+### Setup
 
-`python run_agent.py`
+* Create a virtual env: `python3 -m venv venv`
+* Get into the virtual env: `source venv/bin/activate`
+* Install required libraries: `pip install -r requirements.txt`
+
+#### Run the Controller:
+
+`PYTHONPATH=~/projects/bfgg LOG_LEVEL=DEBUG twistd -n web --wsgi run_controller.app --port tcp:8000`
+
+#### Run the Agents:
+
+`RESULTS_FOLDER=<location/to/save/results>  GATLING_LOCATION=<location/of/gatling.sh> TESTS_LOCATION=<location/of/gatling/tests> LOG_LEVEL=DEBUG python run_agent.py`
 
 ## APIs
 
