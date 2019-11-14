@@ -26,6 +26,9 @@ export default function AgentStatus(props) {
             <TableRow>
               <TableCell>Agent</TableCell>
               <TableCell>Status</TableCell>
+              <TableCell>Cloned repos</TableCell>
+              <TableCell>Test running</TableCell>
+              <TableCell>Extra information</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -57,16 +60,21 @@ AgentRows.propTypes = {
 
 function AgentRow(props) {
   const { agentIp } = props;
-  const { agentStatus } = props;
+  const { agentState } = props;
   return (
     <TableRow>
       <TableCell>{agentIp}</TableCell>
-      <TableCell>{agentStatus}</TableCell>
+      {agentState.map(i => {
+        if(Array.isArray(i)) {
+            i = i.join(", ")
+        }
+        return <TableCell>{i}</TableCell>
+      })}
     </TableRow>
   );
 }
 
 AgentRow.propTypes = {
   agentIp: PropTypes.string.isRequired,
-  agentStatus: PropTypes.string.isRequired,
+  agentState: PropTypes.object.isRequired,
 };
