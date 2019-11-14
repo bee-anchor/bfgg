@@ -1,13 +1,14 @@
 import os
 import logging.config
 from dotenv import load_dotenv
-from bfgg.controller.task_pusher import TaskPusher
-from bfgg.controller.agent_poller import AgentPoller
-from bfgg.controller.model import LOCK, STATE, CONTEXT
+from bfgg.controller.message_handlers.incoming import IncomingMessageHandler
+from bfgg.controller.message_handlers.outgoing import OutgoingMessageHandler
+from bfgg.controller.message_handlers.agent_status import AgentStatusHandler
+from bfgg.controller.model import LOCK, STATE, CONTEXT, OUTGOING_QUEUE
 
 from flask import Flask
 from flask_cors import CORS
-from bfgg.controller import api
+from bfgg.controller.api import api
 
 load_dotenv()
 
@@ -31,14 +32,18 @@ def create_app():
 
 
 def create_controller():
-    taskpusher_port = os.getenv('TASK_PORT')
-    poller_port = os.getenv('POLLER_PORT')
+    incoming_port = os.getenv('CONTROLLER_MESSAGING_PORT')
+    outgoing_port = os.getenv('AGENT_MESSAGING_PORT')
+    status_port = os.getenv('STATUS_PORT')
 
-    task_pusher = TaskPusher(LOCK, CONTEXT, taskpusher_port, STATE)
-    task_pusher.start()
+    incoming_message_handler = IncomingMessageHandler(CONTEXT, incoming_port, STATE)
+    incoming_message_handler.start()
 
-    agent_poller = AgentPoller(LOCK, CONTEXT, poller_port, STATE)
-    agent_poller.start()
+    outgoing_message_handler = OutgoingMessageHandler(LOCK, CONTEXT, outgoing_port, STATE)
+    outgoing_message_handler.start()
+
+    agent_status_handler = AgentStatusHandler(LOCK, CONTEXT, status_port, STATE)
+    agent_status_handler.start()
 
 
 app = create_app()

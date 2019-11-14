@@ -1,5 +1,4 @@
 import os
-import shutil
 import threading
 import subprocess
 import zmq
@@ -8,6 +7,7 @@ import boto3
 from datetime import datetime
 from bfgg.controller.state import State
 from bfgg.utils.messages import START_RESULTS, RESULT
+from bfgg.utils.helpers import create_or_empty_folder
 
 
 class ResultsGetter:
@@ -23,17 +23,6 @@ class ResultsGetter:
         self.gatling_location = gatling_location
         self.s3_bucket = s3_bucket
         self.s3_region = s3_region
-
-    def _reset_results_folder(self):
-        if not os.path.exists(self.results_folder):
-            os.mkdir(self.results_folder)
-        else:
-            print(os.listdir(self.results_folder))
-            for i in os.listdir(self.results_folder):
-                if os.path.isfile(os.path.join(self.results_folder, i)):
-                    os.remove(os.path.join(self.results_folder, i))
-                elif os.path.isdir(os.path.join(self.results_folder, i)):
-                    shutil.rmtree(os.path.join(self.results_folder, i))
 
     @staticmethod
     def _send_recv_start_message(socket, agent):
@@ -138,7 +127,7 @@ class ResultsGetter:
         return url
 
     def get_results(self):
-        self._reset_results_folder()
+        create_or_empty_folder(self.results_folder)
         with self.lock:
             current_agents = self.state.connected_agents
 
