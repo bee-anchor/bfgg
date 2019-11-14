@@ -82,7 +82,7 @@ These can be overridden by environment variables, and some will need to be overr
 
 ### Prereqs
 
-* Python3
+* Python >=3.7
 * Java 8
 * Git
 * Gatling (https://gatling.io/open-source - download and unzip somewhere)
