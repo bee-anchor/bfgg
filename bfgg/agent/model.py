@@ -1,10 +1,9 @@
 import socket
 import os
 import logging.config
-from dataclasses import dataclass
 from queue import Queue
 from dotenv import load_dotenv
-from bfgg.utils.messages import STATUS
+from bfgg.utils.messages import OutgoingMessage, STATUS
 
 load_dotenv()
 
@@ -16,6 +15,7 @@ RESULTS_PORT = os.getenv('RESULTS_PORT')
 TESTS_LOCATION = os.getenv('TESTS_LOCATION')
 RESULTS_FOLDER = os.getenv('RESULTS_FOLDER')
 GATLING_LOCATION = os.getenv('GATLING_LOCATION')
+
 
 def get_identity(controller_host):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -29,17 +29,13 @@ def get_identity(controller_host):
     s.close()
     return ip
 
-@dataclass
-class OutgoingMessage:
-    type: bytes
-    identity: bytes
-    details: bytes
 
 OUTGOING_QUEUE = Queue()
 STATUS_QUEUE = Queue()
 
 IDENTITY = get_identity(CONTROLLER_HOST)
 
+
 def handle_status_change(new_status: str):
     STATUS_QUEUE.put(new_status)
-    OUTGOING_QUEUE.put(OutgoingMessage(STATUS, IDENTITY.encode('utf-8'), new_status.encode('utf8')))
+    OUTGOING_QUEUE.put(OutgoingMessage(STATUS, new_status.encode('utf8')))

@@ -1,16 +1,12 @@
 import os
 import logging.config
-from dotenv import load_dotenv
 from bfgg.controller.message_handlers.incoming import IncomingMessageHandler
 from bfgg.controller.message_handlers.outgoing import OutgoingMessageHandler
-from bfgg.controller.message_handlers.agent_status import AgentStatusHandler
-from bfgg.controller.model import LOCK, STATE, CONTEXT, OUTGOING_QUEUE
+from bfgg.controller.model import LOCK, STATE, CONTEXT, OUTGOING_QUEUE, INCOMING_PORT, OUTGOING_PORT, RESULTS_FOLDER
 
 from flask import Flask
 from flask_cors import CORS
 from bfgg.controller.api import api
-
-load_dotenv()
 
 DEFAULT_LOGGING = {
     'version': 1,
@@ -24,6 +20,7 @@ DEFAULT_LOGGING = {
 
 logging.config.dictConfig(DEFAULT_LOGGING)
 
+
 def create_app():
     app = Flask(__name__)
     CORS(app)
@@ -31,19 +28,13 @@ def create_app():
     return app
 
 
-def create_controller():
-    incoming_port = os.getenv('CONTROLLER_MESSAGING_PORT')
-    outgoing_port = os.getenv('AGENT_MESSAGING_PORT')
-    status_port = os.getenv('STATUS_PORT')
+def create_controller(incoming_port=INCOMING_PORT, outgoing_port=OUTGOING_PORT, results_folder=RESULTS_FOLDER):
 
-    incoming_message_handler = IncomingMessageHandler(CONTEXT, incoming_port, STATE)
+    incoming_message_handler = IncomingMessageHandler(CONTEXT, incoming_port, results_folder)
     incoming_message_handler.start()
 
-    outgoing_message_handler = OutgoingMessageHandler(LOCK, CONTEXT, outgoing_port, STATE)
+    outgoing_message_handler = OutgoingMessageHandler(CONTEXT, outgoing_port)
     outgoing_message_handler.start()
-
-    agent_status_handler = AgentStatusHandler(LOCK, CONTEXT, status_port, STATE)
-    agent_status_handler.start()
 
 
 app = create_app()

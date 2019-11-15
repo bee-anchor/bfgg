@@ -2,9 +2,8 @@ import os
 from marshmallow import ValidationError, EXCLUDE
 from dotenv import load_dotenv
 from flask import Blueprint, request
-from bfgg.controller.state import Task
-from bfgg.utils.messages import CLONE, START_TEST, STOP_TEST
-from bfgg.controller.model import CONTEXT, STATE, LOCK
+from bfgg.utils.messages import OutgoingMessage, CLONE, START_TEST, STOP_TEST
+from bfgg.controller.model import CONTEXT, STATE
 from bfgg.controller.results_getter import ResultsGetter
 from bfgg.controller.api.api_schemas import StartSchema, CloneSchema
 from bfgg.utils.helpers import create_or_empty_folder
@@ -28,7 +27,7 @@ def clone():
     except ValidationError as err:
         return err.messages, bad_request
     repo = result['repo']
-    OUTGOING_QUEUE.put(Task(CLONE, b'MASTER', repo.encode('utf-8')))
+    OUTGOING_QUEUE.put(OutgoingMessage(CLONE, repo.encode('utf-8')))
     return {
         "clone": "requested"
     }
@@ -45,7 +44,7 @@ def start():
     javaOpts = result.get('javaOpts', '')
     task = f"{project},{test},{javaOpts}".encode('utf-8')
     # TODO - if test already running, return error
-    OUTGOING_QUEUE.put(Task(START_TEST, b'MASTER', task))
+    OUTGOING_QUEUE.put(OutgoingMessage(START_TEST, task))
     create_or_empty_folder(results_folder)
     return {
         "test": "requested"
@@ -54,7 +53,7 @@ def start():
 
 @bp.route('/stop', methods=['POST'])
 def stop():
-    OUTGOING_QUEUE.put(Task(STOP_TEST, b'MASTER', b"STOP"))
+    OUTGOING_QUEUE.put(OutgoingMessage(STOP_TEST, b"STOP"))
     return {
         "testStop": "requested"
     }
@@ -62,14 +61,13 @@ def stop():
 
 @bp.route('/status', methods=['GET'])
 def status():
-    with LOCK:
-        current_status = STATE.current_agents_status()
+    current_status = STATE.current_agents_status()
     return current_status
 
 
 @bp.route('/results', methods=['GET'])
 def results():
-    getter = ResultsGetter(LOCK, CONTEXT, results_port, STATE, results_folder, gatling_location, s3_bucket, s3_region)
+    getter = ResultsGetter(CONTEXT, results_port, STATE, results_folder, gatling_location, s3_bucket, s3_region)
     url = getter.get_results()
     return {
         "Results": url

@@ -4,15 +4,17 @@ from concurrent import futures
 import subprocess
 import logging.config
 from bfgg.agent.model import handle_status_change
+from bfgg.agent.actors.log_follower import LogFollower
 
 
 class TestRunner(threading.Thread):
 
-    def __init__(self, gatling_location, tests_location, results_folder, project: str, test: str, java_opts: str):
+    def __init__(self, gatling_location: str, tests_location: str, results_folder: str, project: str, test: str,
+                 java_opts: str):
         threading.Thread.__init__(self)
         self.gatling_location = gatling_location
-        self.tests_location=tests_location
-        self.results_folder=results_folder
+        self.tests_location = tests_location
+        self.results_folder = results_folder
         self.project = project
         self.test = test
         self.java_opts = java_opts
@@ -59,6 +61,7 @@ class TestRunner(threading.Thread):
                 elif f"Simulation {self.test} started".encode('utf-8') in line:
                     handle_status_change("Test_Running")
                     logging.info(f"Test {self.test} started")
+                    LogFollower(self._get_latest_logfile()).start()
                 elif b"No tests to run for Gatling" in line:
                     test_process.terminate()
                     logging.error(f"No test was run, check the test class provided: {self.test}")
@@ -68,6 +71,14 @@ class TestRunner(threading.Thread):
                     handle_status_change("Test_Finished")
                     logging.info(f"Test {self.test} finished!")
                     break
+
+    def _get_latest_logfile(self):
+        result_folders = os.listdir(self.results_folder)
+        folders = [os.path.join(self.results_folder, x) for x in result_folders if
+                   os.path.isdir(os.path.join(self.results_folder, x))]
+        newest_folder = max(folders, key=os.path.getmtime)
+        path = os.path.join(newest_folder, "simulation.log")
+        return path
 
     def run(self):
         test_process = self._start_test_process()

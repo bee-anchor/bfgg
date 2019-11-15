@@ -1,25 +1,33 @@
 import threading
 import zmq
+import atexit
 import logging.config
 from bfgg.agent.model import OUTGOING_QUEUE
+from bfgg.utils.messages import BYE
+from bfgg.utils.messages import OutgoingMessage
 
 
 class OutgoingMessageHandler(threading.Thread):
 
-    def __init__(self, context: zmq.Context, controller_host: str, port: str,):
+    def __init__(self, context: zmq.Context, controller_host: str, port: str, identity: bytes):
         threading.Thread.__init__(self)
         self.context = context
         self.controller_host = controller_host
         self.port = port
+        self.identity = identity
+        self.handler = self.context.socket(zmq.PUSH)
+        self.handler.connect(f"tcp://{self.controller_host}:{self.port}")
+        atexit.register(self.exit_gracefully)
 
     def run(self):
-        handler = self.context.socket(zmq.PULL)
-        handler.connect(f"tcp://{self.controller_host}:{self.port}")
         logging.info("OutgoingMessageHandler thread started")
         while True:
-            self._message_handler_loop(handler)
+            self._message_handler_loop()
 
-    @staticmethod
-    def _message_handler_loop(handler):
-        message = OUTGOING_QUEUE.get()
-        handler.send_multipart(message)
+    def _message_handler_loop(self):
+        message: OutgoingMessage = OUTGOING_QUEUE.get()
+        self.handler.send_multipart([self.identity, message.type, message.details])
+
+    def exit_gracefully(self):
+        self.handler.send_multipart([self.identity, BYE, b"goodbye"])
+        logging.info("Agent terminated")

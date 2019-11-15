@@ -22,10 +22,10 @@ class IncomingMessageHandler(threading.Thread):
     def run(self):
         handler = self.context.socket(zmq.PULL)
         handler.connect(f"tcp://{self.controller_host}:{self.port}")
-        logging.info("TaskHandler thread started")
+        logging.info("IncomingMessageHandler thread started")
         while True:
             try:
-                [type, identity, message] = handler.recv_multipart()
+                [identity, type, message] = handler.recv_multipart()
                 if type == CLONE:
                     clone_repo(message.decode("utf-8"), self.tests_location)
                 elif type == START_TEST:
@@ -38,7 +38,7 @@ class IncomingMessageHandler(threading.Thread):
                     if self.test_runner:
                         self.test_runner.stop_test()
                 else:
-                    print(type, identity, message)
+                    print(identity, type, message)
             except Exception as e:
                 logging.error(e)
                 continue
