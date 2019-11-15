@@ -1,15 +1,12 @@
 import os
 import logging.config
-from dotenv import load_dotenv
-from bfgg.controller.task_pusher import TaskPusher
-from bfgg.controller.agent_poller import AgentPoller
-from bfgg.controller.model import LOCK, STATE, CONTEXT
+from bfgg.controller.message_handlers.incoming import IncomingMessageHandler
+from bfgg.controller.message_handlers.outgoing import OutgoingMessageHandler
+from bfgg.controller.model import LOCK, STATE, CONTEXT, OUTGOING_QUEUE, INCOMING_PORT, OUTGOING_PORT, RESULTS_FOLDER
 
 from flask import Flask
 from flask_cors import CORS
-from bfgg.controller import api
-
-load_dotenv()
+from bfgg.controller.api import api
 
 DEFAULT_LOGGING = {
     'version': 1,
@@ -23,6 +20,7 @@ DEFAULT_LOGGING = {
 
 logging.config.dictConfig(DEFAULT_LOGGING)
 
+
 def create_app():
     app = Flask(__name__)
     CORS(app)
@@ -30,15 +28,13 @@ def create_app():
     return app
 
 
-def create_controller():
-    taskpusher_port = os.getenv('TASK_PORT')
-    poller_port = os.getenv('POLLER_PORT')
+def create_controller(incoming_port=INCOMING_PORT, outgoing_port=OUTGOING_PORT, results_folder=RESULTS_FOLDER):
 
-    task_pusher = TaskPusher(LOCK, CONTEXT, taskpusher_port, STATE)
-    task_pusher.start()
+    incoming_message_handler = IncomingMessageHandler(CONTEXT, incoming_port, results_folder)
+    incoming_message_handler.start()
 
-    agent_poller = AgentPoller(LOCK, CONTEXT, poller_port, STATE)
-    agent_poller.start()
+    outgoing_message_handler = OutgoingMessageHandler(CONTEXT, outgoing_port)
+    outgoing_message_handler.start()
 
 
 app = create_app()

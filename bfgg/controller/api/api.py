@@ -1,19 +1,19 @@
 import os
-from concurrent import futures
+from marshmallow import ValidationError, EXCLUDE
 from dotenv import load_dotenv
 from flask import Blueprint, request
-from bfgg.controller.state import Task
-from bfgg.utils.messages import CLONE, PREP_TEST, START_TEST, STOP_TEST, STATUS
-from bfgg.controller.model import LOCK, STATE, CONTEXT
+from bfgg.utils.messages import OutgoingMessage, CLONE, START_TEST, STOP_TEST
+from bfgg.controller.model import CONTEXT, STATE
 from bfgg.controller.results_getter import ResultsGetter
-from bfgg.controller.api_schemas import StartSchema, CloneSchema
-from marshmallow import ValidationError, EXCLUDE
+from bfgg.controller.api.api_schemas import StartSchema, CloneSchema
+from bfgg.utils.helpers import create_or_empty_folder
+from bfgg.controller import OUTGOING_QUEUE
 
 bp = Blueprint('root', __name__)
 
 load_dotenv()
 results_port = os.getenv('RESULTS_PORT')
-results_file = os.getenv('RESULTS_FOLDER')
+results_folder = os.getenv('RESULTS_FOLDER')
 gatling_location = os.getenv('GATLING_LOCATION')
 s3_bucket = os.getenv('S3_BUCKET')
 s3_region = os.getenv('S3_REGION')
@@ -25,10 +25,9 @@ def clone():
     try:
         result = CloneSchema().load(request.get_json(force=True), unknown=EXCLUDE)
     except ValidationError as err:
-       return err.messages, bad_request
+        return err.messages, bad_request
     repo = result['repo']
-    with LOCK:
-        STATE.add_task(Task(CLONE, b'MASTER', repo.encode('utf-8')))
+    OUTGOING_QUEUE.put(OutgoingMessage(CLONE, repo.encode('utf-8')))
     return {
         "clone": "requested"
     }
@@ -39,13 +38,14 @@ def start():
     try:
         result = StartSchema().load(request.get_json(force=True), unknown=EXCLUDE)
     except ValidationError as err:
-       return err.messages, bad_request
+        return err.messages, bad_request
     project = result['project']
     test = result['testClass']
     javaOpts = result.get('javaOpts', '')
     task = f"{project},{test},{javaOpts}".encode('utf-8')
-    with LOCK:
-        STATE.add_task(Task(START_TEST, b'MASTER', task))
+    # TODO - if test already running, return error
+    OUTGOING_QUEUE.put(OutgoingMessage(START_TEST, task))
+    create_or_empty_folder(results_folder)
     return {
         "test": "requested"
     }
@@ -53,8 +53,7 @@ def start():
 
 @bp.route('/stop', methods=['POST'])
 def stop():
-    with LOCK:
-        STATE.add_task(Task(STOP_TEST, b'MASTER', b"STOP"))
+    OUTGOING_QUEUE.put(OutgoingMessage(STOP_TEST, b"STOP"))
     return {
         "testStop": "requested"
     }
@@ -62,16 +61,13 @@ def stop():
 
 @bp.route('/status', methods=['GET'])
 def status():
-    with LOCK:
-        current_status = STATE.current_agents_status()
+    current_status = STATE.current_agents_status()
     return current_status
 
 
 @bp.route('/results', methods=['GET'])
 def results():
-    getter = ResultsGetter(LOCK, CONTEXT, results_port, STATE, results_file, gatling_location, s3_bucket, s3_region)
-    # executor = futures.ThreadPoolExecutor(max_workers=1)
-    # executor.submit(getter.get_results)
+    getter = ResultsGetter(CONTEXT, results_port, STATE, results_folder, gatling_location, s3_bucket, s3_region)
     url = getter.get_results()
     return {
         "Results": url

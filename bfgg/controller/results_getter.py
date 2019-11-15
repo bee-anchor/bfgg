@@ -1,39 +1,28 @@
 import os
-import shutil
 import threading
 import subprocess
 import zmq
 import logging.config
 import boto3
 from datetime import datetime
-from bfgg.controller.state import State
 from bfgg.utils.messages import START_RESULTS, RESULT
+from bfgg.utils.helpers import create_or_empty_folder
+from bfgg.controller.model import STATE
 
 
 class ResultsGetter:
 
     CHUNK_SIZE = 250000
 
-    def __init__(self, lock: threading.Lock, context: zmq.Context, port, state: State, results_folder, gatling_location, s3_bucket, s3_region):
+    def __init__(self, lock: threading.Lock, context: zmq.Context, port: str, results_folder: str,
+                 gatling_location: str, s3_bucket: str, s3_region: str):
         self.lock = lock
         self.context = context
         self.port = port
-        self.state: State = state
         self.results_folder = results_folder
         self.gatling_location = gatling_location
         self.s3_bucket = s3_bucket
         self.s3_region = s3_region
-
-    def _reset_results_folder(self):
-        if not os.path.exists(self.results_folder):
-            os.mkdir(self.results_folder)
-        else:
-            print(os.listdir(self.results_folder))
-            for i in os.listdir(self.results_folder):
-                if os.path.isfile(os.path.join(self.results_folder, i)):
-                    os.remove(os.path.join(self.results_folder, i))
-                elif os.path.isdir(os.path.join(self.results_folder, i)):
-                    shutil.rmtree(os.path.join(self.results_folder, i))
 
     @staticmethod
     def _send_recv_start_message(socket, agent):
@@ -138,9 +127,8 @@ class ResultsGetter:
         return url
 
     def get_results(self):
-        self._reset_results_folder()
-        with self.lock:
-            current_agents = self.state.connected_agents
+        create_or_empty_folder(self.results_folder)
+        current_agents = STATE.connected_agents
 
         for agent in current_agents:
             getter = self.context.socket(zmq.DEALER)

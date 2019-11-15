@@ -5,3 +5,4 @@ pyzmq==18.1.0
 Twisted==19.7.0
 boto3==1.9.249
 marshmallow==3.2.1
+prometheus-client==0.7.1
