@@ -48,6 +48,7 @@ export default function CloneForm(props) {
           <TextField
             id="clone-repo-url"
             label="clone repo url"
+            placeholder="git@bitbucket.org:company/repo.git"
             fullWidth
             margin="normal"
             variant="outlined"
