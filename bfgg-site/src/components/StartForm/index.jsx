@@ -46,7 +46,7 @@ export default function StartForm(props) {
         <TextField
           id="project-name"
           label="Project"
-          placeholder="super6-perf"
+          placeholder="repo_name"
           helperText="The name of the repo containing the tests"
           fullWidth
           margin="normal"
@@ -56,7 +56,7 @@ export default function StartForm(props) {
         <TextField
           id="test-class"
           label="Test Class"
-          placeholder="InPlayWebSpiking_custom"
+          placeholder="TestClass"
           helperText="The test class to be run"
           fullWidth
           margin="normal"
