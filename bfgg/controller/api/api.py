@@ -61,8 +61,8 @@ def stop():
 
 @bp.route('/status', methods=['GET'])
 def status():
-    current_status = STATE.current_agents_status()
-    return current_status
+    current_state = STATE.current_agents_state()
+    return current_state
 
 
 @bp.route('/results', methods=['GET'])

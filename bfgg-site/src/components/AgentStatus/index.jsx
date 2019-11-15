@@ -46,9 +46,10 @@ AgentStatus.propTypes = {
 
 function AgentRows(props) {
   const { agents } = props;
+  console.log(agents)
   if (Object.keys(agents).length > 0) {
     return Object.entries(agents).map(
-      ([key, value]) => <AgentRow key={key} agentIp={key} agentStatus={value} />,
+      ([key, value]) => <AgentRow key={key} agentIp={key} agentState={value} />,
     );
   }
   return <TableRow />;
@@ -59,17 +60,17 @@ AgentRows.propTypes = {
 };
 
 function AgentRow(props) {
+  console.log(props)
   const { agentIp } = props;
   const { agentState } = props;
+  console.log(agentState)
   return (
     <TableRow>
       <TableCell>{agentIp}</TableCell>
-      {agentState.map(i => {
-        if(Array.isArray(i)) {
-            i = i.join(", ")
-        }
-        return <TableCell>{i}</TableCell>
-      })}
+      <TableCell>{agentState['status']}</TableCell>
+      <TableCell>{agentState['cloned_repos'].join(", ")}</TableCell>
+      <TableCell>{agentState['test_running']}</TableCell>
+      <TableCell>{agentState['extra_info']}</TableCell>
     </TableRow>
   );
 }

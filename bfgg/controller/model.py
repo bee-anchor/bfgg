@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 @dataclass
 class Agent:
-    status: str
+    attributes: dict
     last_heard_from: int
 
 
@@ -39,9 +39,9 @@ class State:
             else:
                 self._connected_agents[agent] = Agent(state, int(datetime.now().timestamp()))
 
-    def current_agents_status(self):
+    def current_agents_state(self):
         with self.lock:
-            return {a.decode('utf-8'): s.status for a, s in self._connected_agents.items()}
+            return {a.decode('utf-8'): s.attributes for a, s in self._connected_agents.items()}
 
     def handle_dead_agents(self):
         current_time = int(datetime.now().timestamp())

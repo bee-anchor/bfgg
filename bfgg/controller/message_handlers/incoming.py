@@ -5,6 +5,7 @@ import logging.config
 from bfgg.utils.messages import LOG, STATUS, BYE
 from bfgg.utils.helpers import ip_to_log_filename
 from bfgg.controller.model import STATE
+import pickle
 
 
 class IncomingMessageHandler(threading.Thread):
@@ -26,7 +27,7 @@ class IncomingMessageHandler(threading.Thread):
                 with open(os.path.join(self.results_folder, ip_to_log_filename(identity.decode('utf-8'))), 'a') as f:
                     f.write(payload.decode('utf-8'))
             if mess_type == STATUS:
-                STATE.update_agent(identity, payload.decode('utf-8'))
+                STATE.update_agent(identity, pickle.loads(payload))
             elif mess_type == BYE:
                 STATE.remove_agent(identity)
 

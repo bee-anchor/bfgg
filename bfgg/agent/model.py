@@ -4,6 +4,7 @@ import logging.config
 from queue import Queue
 from dotenv import load_dotenv
 from bfgg.utils.messages import OutgoingMessage, STATUS
+from bfgg.utils.messages import STATUS, CLONED_REPO, TEST_RUNNING, EXTRA_INFO
 
 load_dotenv()
 
@@ -31,11 +32,23 @@ def get_identity(controller_host):
 
 
 OUTGOING_QUEUE = Queue()
-STATUS_QUEUE = Queue()
+STATE_QUEUE = Queue()
 
 IDENTITY = get_identity(CONTROLLER_HOST)
 
 
-def handle_status_change(new_status: str):
-    STATUS_QUEUE.put(new_status)
-    OUTGOING_QUEUE.put(OutgoingMessage(STATUS, new_status.encode('utf8')))
+def handle_state_change(status: str = None, cloned_repo: str = None, test_running: str = None, extra_info: str = None):
+    new_state = {}
+    if status:
+        new_state["status"] = status
+     #   OUTGOING_QUEUE.put(OutgoingMessage(STATUS, IDENTITY.encode('utf-8'), status.encode('utf8')))
+    if cloned_repo:
+        new_state["cloned_repos"] = cloned_repo
+     #   OUTGOING_QUEUE.put(OutgoingMessage(CLONED_REPO, IDENTITY.encode('utf-8'), cloned_repo.encode('utf8')))
+    if test_running:
+        new_state["test_running"] = test_running
+     #   OUTGOING_QUEUE.put(OutgoingMessage(TEST_RUNNING, IDENTITY.encode('utf-8'), test_running.encode('utf8')))
+    if extra_info:
+        new_state["extra_info"] = extra_info
+      #  OUTGOING_QUEUE.put(OutgoingMessage(EXTRA_INFO, IDENTITY.encode('utf-8'), extra_info.encode('utf8')))
+    STATE_QUEUE.put(new_state)
