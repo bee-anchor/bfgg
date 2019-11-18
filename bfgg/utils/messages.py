@@ -10,6 +10,7 @@ BYE = "BYE".encode('utf-8')
 START_RESULTS = "SRES".encode('utf-8')
 RESULT = "RES".encode('utf-8')
 
+
 @dataclass
 class OutgoingMessage:
     type: bytes

@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class Statuses(Enum):
     ERROR = b'0'
     AVAILABLE = b'1'
