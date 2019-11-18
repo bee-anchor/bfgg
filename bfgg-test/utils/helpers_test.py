@@ -1,37 +1,37 @@
 import unittest
-import os
-import shutil
-from unittest.mock import MagicMock
+from unittest.mock import patch
 from bfgg.utils.helpers import ip_to_log_filename, create_or_empty_folder
 
 
 class HelpersTest(unittest.TestCase):
 
-    def ip_to_log_filename_test(self):
+    def test_ip_to_log_filename(self):
         self.assertEqual("1_1_1_1.log", ip_to_log_filename("1.1.1.1"))
 
-    def create_or_empty_folder_test_path_doesnt_exist(self):
-        os.path.exists = MagicMock(return_value=False)
-        os.mkdir = MagicMock()
+    @patch('os.path.exists', return_value=False)
+    @patch('os.mkdir')
+    def test_create_or_empty_folder_test_path_doesnt_exist(self, os_mkdir_mock, os_path_exists_mock):
         create_or_empty_folder("path/to/stuff")
-        os.path.exists.assert_called_once()
-        os.mkdir.assert_called_once_with("path/to/stuff")
+        os_path_exists_mock.assert_called_once()
+        os_mkdir_mock.assert_called_once_with("path/to/stuff")
 
-    def create_or_empty_folder_test_path_folder_exists(self):
-        os.path.exists = MagicMock(return_value=True)
-        os.listdir = MagicMock(return_value=["A", "B", "C"])
-        os.path.isfile = MagicMock(side_effect=[True, False, True])
-        os.path.isdir = MagicMock(return_value=True)
-        os.remove = MagicMock()
-        shutil.rmtree = MagicMock()
-        os.path.join = MagicMock()
+    @patch('shutil.rmtree')
+    @patch('os.listdir', return_value=["A", "B", "C"])
+    @patch('os.remove')
+    @patch('os.path.exists', return_value=True)
+    @patch('os.path.isfile', side_effect=[True, False, True])
+    @patch('os.path.isdir', return_value=True)
+    @patch('os.path.join')
+    def test_create_or_empty_folder_test_path_folder_exists(self, os_path_join_mock, os_path_isdir_mock,
+                                                            os_path_isfile_mock, os_path_exists_mock, os_remove_mock,
+                                                            os_listdir_mock, shutil_rmtree_mock):
         create_or_empty_folder("path/to/stuff")
 
-        os.listdir.assert_called_once()
-        self.assertEquals(3, os.path.isfile.call_count)
-        os.path.isdir.assert_called_once()
-        self.assertEquals(2, os.remove.call_count)
-        shutil.rmtree.assert_called_once()
+        os_listdir_mock.assert_called_once()
+        self.assertEqual(3, os_path_isfile_mock.call_count)
+        os_path_isdir_mock.assert_called_once()
+        self.assertEqual(2, os_remove_mock.call_count)
+        shutil_rmtree_mock.assert_called_once()
 
 
 
