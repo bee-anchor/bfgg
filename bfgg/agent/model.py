@@ -3,7 +3,7 @@ import os
 import logging.config
 from queue import Queue
 from dotenv import load_dotenv
-from bfgg.utils.messages import OutgoingMessage, STATUS
+from bfgg.utils.messages import OutgoingMessage, Statuses, STATUS, START_TEST, FINISHED_TEST
 
 load_dotenv()
 
@@ -36,6 +36,16 @@ STATUS_QUEUE = Queue()
 IDENTITY = get_identity(CONTROLLER_HOST)
 
 
-def handle_status_change(new_status: str):
+def handle_status_change(new_status: Statuses):
     STATUS_QUEUE.put(new_status)
-    OUTGOING_QUEUE.put(OutgoingMessage(STATUS, new_status.encode('utf8')))
+    OUTGOING_QUEUE.put(OutgoingMessage(STATUS, new_status.value))
+
+
+def handle_test_running():
+    handle_status_change(Statuses.TEST_RUNNING)
+    OUTGOING_QUEUE.put(OutgoingMessage(START_TEST, b'test running'))
+
+
+def handle_test_finished():
+    handle_status_change(Statuses.TEST_FINISHED)
+    OUTGOING_QUEUE.put(OutgoingMessage(FINISHED_TEST, b'test finished'))
