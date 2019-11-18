@@ -4,7 +4,7 @@ import os
 from bfgg.agent.message_handlers.incoming import IncomingMessageHandler
 from bfgg.agent.message_handlers.outgoing import OutgoingMessageHandler
 from bfgg.agent.actors.status_poller import StatusPoller
-from bfgg.agent.model import (IDENTITY, CONTROLLER_HOST, AGENT_MESSAGING_PORT, CONTROLLER_MESSAGING_PORT, STATUS_PORT,
+from bfgg.agent.model import (IDENTITY, CONTROLLER_HOST, AGENT_MESSAGING_PORT, CONTROLLER_MESSAGING_PORT,
                               TESTS_LOCATION, RESULTS_FOLDER, GATLING_LOCATION)
 
 DEFAULT_LOGGING = {

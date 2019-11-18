@@ -2,7 +2,7 @@ import os
 import logging.config
 from bfgg.controller.message_handlers.incoming import IncomingMessageHandler
 from bfgg.controller.message_handlers.outgoing import OutgoingMessageHandler
-from bfgg.controller.model import (LOCK, STATE, CONTEXT, OUTGOING_QUEUE, INCOMING_PORT, OUTGOING_PORT, RESULTS_FOLDER,
+from bfgg.controller.model import (STATE, CONTEXT, OUTGOING_QUEUE, INCOMING_PORT, OUTGOING_PORT, RESULTS_FOLDER,
                                    GATLING_LOCATION, S3_BUCKET, S3_REGION)
 
 from flask import Flask

@@ -23,6 +23,3 @@ class LogFollower(threading.Thread):
             if logs:
                 OUTGOING_QUEUE.put(OutgoingMessage(LOG, logs.encode('utf-8')))
                 logging.info("Log queued")
-
-
-
