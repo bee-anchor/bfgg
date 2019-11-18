@@ -4,9 +4,7 @@ import logging.config
 from queue import Queue
 from dotenv import load_dotenv
 import pickle
-from bfgg.utils.messages import OutgoingMessage, STATUS, START_TEST, FINISHED_TEST
-from inspect import signature
-from bfgg.utils.statuses import Statuses
+from bfgg.utils.messages import OutgoingMessage, STATUS
 
 load_dotenv()
 

@@ -11,7 +11,7 @@ from bfgg.utils.statuses import Statuses
 
 
 
-@dataclass()
+@dataclass
 class Agent:
     state: dict
     last_heard_from: int
