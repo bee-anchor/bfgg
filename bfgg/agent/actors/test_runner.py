@@ -3,9 +3,9 @@ import os
 from concurrent import futures
 import subprocess
 import logging.config
-from bfgg.agent.model import handle_state_change
 from bfgg.agent.actors.log_follower import LogFollower
 from bfgg.utils.statuses import Statuses
+from bfgg.agent.model import handle_state_change
 
 
 class TestRunner(threading.Thread):
@@ -49,31 +49,30 @@ class TestRunner(threading.Thread):
                 line = line_getter.result(timeout=30)
             except futures.TimeoutError:
                 test_process.terminate()
-                handle_state_change(status=Statuses.TEST_ERROR.value,
+                handle_state_change(status=Statuses.ERROR,
                                     extra_info="No output from gatling for 30s, gatling process terminated")
-                logging.error("no output from gatling for 30s, gatling process terminated")
                 break
             else:
                 logging.debug(line.decode('utf-8').rstrip())
                 if line == b'':
                     test_process.terminate()
-                    handle_state_change(status=Statuses.TEST_ERROR.value,
+                    handle_state_change(status=Statuses.ERROR,
                                         extra_info="Gatling output ended unexpectedly, gatling process terminated")
                     logging.error("gatling output ended unexpectedly, gatling process terminated")
                     break
                 elif f"Simulation {self.test} started".encode('utf-8') in line:
-                    handle_state_change(status=Statuses.TEST_RUNNING.value, test_running=f"{self.project} - {self.test}")
+                    handle_state_change(status=Statuses.TEST_RUNNING, test_running=f"{self.project} - {self.test}")
                     logging.info(f"Test {self.test} started")
                     LogFollower(self._get_latest_logfile()).start()
                 elif b"No tests to run for Gatling" in line:
                     test_process.terminate()
                     logging.error(f"No test was run, check the test class provided: {self.test}")
-                    handle_state_change(status=Statuses.TEST_ERROR.value,
+                    handle_state_change(status=Statuses.ERROR,
                                         extra_info="No test was run, please check the test class provided")
                     break
                 elif f"Simulation {self.test} completed".encode('utf-8') in line:
                     test_process.terminate()
-                    handle_state_change(status=Statuses.AVAILABLE.value, test_running=None, extra_info="Test has finished successfully")
+                    handle_state_change(status=Statuses.TEST_FINISHED, test_running=None, extra_info="Test has finished successfully")
                     logging.info(f"Test {self.test} finished!")
                     break
 
@@ -93,5 +92,5 @@ class TestRunner(threading.Thread):
         if self.test_process is not None:
             os.killpg(os.getpgid(self.test_process.pid), 15)
             self.test_process.terminate()
-            handle_state_change(status="Available", extra_info="Test has been stopped")
+            handle_state_change(status=Statuses.TEST_STOPPED, extra_info="Test has been stopped")
             logging.info("Test manually stopped")

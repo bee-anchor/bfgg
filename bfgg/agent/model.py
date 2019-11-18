@@ -3,8 +3,9 @@ import os
 import logging.config
 from queue import Queue
 from dotenv import load_dotenv
-from bfgg.utils.messages import OutgoingMessage, STATUS
 import pickle
+from bfgg.utils.messages import OutgoingMessage, STATUS, START_TEST, FINISHED_TEST
+from bfgg.utils.statuses import Statuses
 
 load_dotenv()
 
@@ -37,7 +38,7 @@ STATE_QUEUE = Queue()
 IDENTITY = get_identity(CONTROLLER_HOST)
 
 
-def handle_state_change(status: str = None, cloned_repo: str = None, test_running: str = None, extra_info: str = None):
+def handle_state_change(message_type: str = STATUS, status: str = None, cloned_repo: str = None, test_running: str = None, extra_info: str = None):
     new_state = {}
     if status:
         new_state["status"] = status
@@ -47,5 +48,5 @@ def handle_state_change(status: str = None, cloned_repo: str = None, test_runnin
         new_state["test_running"] = test_running
     if extra_info:
         new_state["extra_info"] = extra_info
-    OUTGOING_QUEUE.put(OutgoingMessage(STATUS, pickle.dumps(new_state)))
+    OUTGOING_QUEUE.put(OutgoingMessage(message_type, pickle.dumps(new_state)))
     STATE_QUEUE.put(new_state)

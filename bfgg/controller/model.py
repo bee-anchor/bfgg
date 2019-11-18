@@ -7,6 +7,8 @@ from typing import Dict
 from dataclasses import dataclass
 from datetime import datetime
 from dotenv import load_dotenv
+from bfgg.utils.statuses import Statuses
+
 
 
 @dataclass()
@@ -35,13 +37,13 @@ class State:
         with self.lock:
             return list(self._connected_agents.keys())
 
-    def remove_agent(self, agent):
+    def remove_agent(self, agent: bytes):
         with self.lock:
             if agent in self._connected_agents:
                 self._connected_agents.pop(agent)
                 logging.info(f"{agent} disconnected")
 
-    def update_agent(self, agent, state):
+    def update_agent(self, agent: bytes, state: dict):
         with self.lock:
             if agent not in self._connected_agents:
                 self._connected_agents[agent] = Agent(state, int(datetime.now().timestamp()))
@@ -53,6 +55,13 @@ class State:
         with self.lock:
             return {a.decode('utf-8'): s.state for a, s in self._connected_agents.items()}
 
+    def all_agents_finished(self):
+        agents = self.current_agents_state()
+        statuses = set([i['status'] for i in agents])
+        if len(statuses) == 1 and Statuses.TEST_FINISHED in statuses:
+            return True
+        return False
+
     def handle_dead_agents(self):
         current_time = int(datetime.now().timestamp())
         with self.lock:
@@ -62,6 +71,7 @@ class State:
                     self._connected_agents.pop(agent)
                     logging.warning(f"Agent {agent.decode('utf-8')} has not been heard from for a while, removing from connected list")
 
+
 load_dotenv()
 LOCK = threading.Lock()
 STATE = State(LOCK)
@@ -70,3 +80,6 @@ OUTGOING_QUEUE = Queue()
 INCOMING_PORT = os.getenv('CONTROLLER_MESSAGING_PORT')
 OUTGOING_PORT = os.getenv('AGENT_MESSAGING_PORT')
 RESULTS_FOLDER = os.getenv('RESULTS_FOLDER')
+GATLING_LOCATION = os.getenv('GATLING_LOCATION')
+S3_BUCKET = os.getenv('S3_BUCKET')
+S3_REGION = os.getenv('S3_REGION')

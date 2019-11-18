@@ -2,16 +2,16 @@ import threading
 import time
 import logging.config
 from queue import Empty
-from bfgg.agent.model import STATE_QUEUE, OUTGOING_QUEUE
-from bfgg.utils.messages import STATUS, OutgoingMessage
-from bfgg.utils.statuses import Statuses
 import pickle
+from bfgg.agent.model import STATE_QUEUE, OUTGOING_QUEUE
+from bfgg.utils.statuses import Statuses
+from bfgg.utils.messages import OutgoingMessage, STATUS
 
 
 class State:
     def __init__(self):
         self.attributes: dict = {
-            "status": Statuses.AVAILABLE.value,
+            "status": Statuses.AVAILABLE,
             "cloned_repos": set(),
             "test_running": "None",
             "extra_info": "None"

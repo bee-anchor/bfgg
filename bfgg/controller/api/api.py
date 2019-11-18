@@ -2,13 +2,14 @@ import os
 from marshmallow import ValidationError, EXCLUDE
 from dotenv import load_dotenv
 from flask import Blueprint, request
+import json
 from bfgg.utils.messages import OutgoingMessage, CLONE, START_TEST, STOP_TEST
-from bfgg.controller.model import CONTEXT, STATE
-from bfgg.controller.results_getter import ResultsGetter
+from bfgg.controller.model import STATE
 from bfgg.controller.api.api_schemas import StartSchema, CloneSchema
 from bfgg.utils.helpers import create_or_empty_folder
 from bfgg.controller import OUTGOING_QUEUE
-import json
+from bfgg.controller.actors.report_handler import ReportHandler
+from bfgg.utils.statuses import Statuses
 
 bp = Blueprint('root', __name__)
 
@@ -68,8 +69,8 @@ def status():
 
 @bp.route('/results', methods=['GET'])
 def results():
-    getter = ResultsGetter(CONTEXT, results_port, STATE, results_folder, gatling_location, s3_bucket, s3_region)
-    url = getter.get_results()
+    getter = ReportHandler(results_folder, gatling_location, s3_bucket, s3_region)
+    url = getter.run()
     return {
         "Results": url
     }
@@ -79,4 +80,6 @@ class _StatusEncoder(json.JSONEncoder):
     def default(self, obj):
         if type(obj) == set:
             return list(obj)
+        elif type(obj) == Statuses:
+            return obj.name
         return super().default(obj)
