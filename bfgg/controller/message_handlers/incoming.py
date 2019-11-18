@@ -3,6 +3,7 @@ import threading
 import zmq
 import logging.config
 from bfgg.controller.model import State
+import pickle
 from bfgg.utils.messages import LOG, STATUS, BYE, START_TEST, FINISHED_TEST
 from bfgg.utils.helpers import ip_to_log_filename, create_or_empty_folder
 from bfgg.controller.actors.report_handler import ReportHandler
@@ -32,7 +33,7 @@ class IncomingMessageHandler(threading.Thread):
                 with open(os.path.join(self.results_folder, ip_to_log_filename(identity.decode('utf-8'))), 'a') as f:
                     f.write(payload.decode('utf-8'))
             elif mess_type == STATUS:
-                self.state.update_agent(identity, payload)
+                self.state.update_agent(identity, pickle.loads(payload))
             elif mess_type == BYE:
                 self.state.remove_agent(identity)
             elif mess_type == START_TEST:

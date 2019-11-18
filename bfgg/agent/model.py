@@ -3,7 +3,8 @@ import os
 import logging.config
 from queue import Queue
 from dotenv import load_dotenv
-from bfgg.utils.messages import OutgoingMessage, Statuses, STATUS, START_TEST, FINISHED_TEST
+import pickle
+from bfgg.utils.messages import OutgoingMessage, STATUS
 
 load_dotenv()
 
@@ -31,21 +32,20 @@ def get_identity(controller_host):
 
 
 OUTGOING_QUEUE = Queue()
-STATUS_QUEUE = Queue()
+STATE_QUEUE = Queue()
 
 IDENTITY = get_identity(CONTROLLER_HOST)
 
 
-def handle_status_change(new_status: Statuses):
-    STATUS_QUEUE.put(new_status)
-    OUTGOING_QUEUE.put(OutgoingMessage(STATUS, new_status.value))
-
-
-def handle_test_running():
-    handle_status_change(Statuses.TEST_RUNNING)
-    OUTGOING_QUEUE.put(OutgoingMessage(START_TEST, b'test running'))
-
-
-def handle_test_finished():
-    handle_status_change(Statuses.TEST_FINISHED)
-    OUTGOING_QUEUE.put(OutgoingMessage(FINISHED_TEST, b'test finished'))
+def handle_state_change(message_type: str = STATUS, status: str = None, cloned_repo: str = None, test_running: str = None, extra_info: str = 'None'):
+    new_state = {
+        "extra_info" : extra_info
+    }
+    if status:
+        new_state["status"] = status
+    if cloned_repo:
+        new_state["cloned_repos"] = {cloned_repo}
+    if test_running:
+        new_state["test_running"] = test_running
+    OUTGOING_QUEUE.put(OutgoingMessage(message_type, pickle.dumps(new_state)))
+    STATE_QUEUE.put(new_state)

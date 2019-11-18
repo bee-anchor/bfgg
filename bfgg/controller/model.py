@@ -7,13 +7,23 @@ from typing import Dict
 from dataclasses import dataclass
 from datetime import datetime
 from dotenv import load_dotenv
-from bfgg.utils.messages import Statuses
+from bfgg.utils.statuses import Statuses
+
 
 
 @dataclass
 class Agent:
-    status: Statuses
+    state: dict
     last_heard_from: int
+
+    def update(self, new_attributes):
+        for k, v in new_attributes.items():
+            if type(v) is set:
+                self.state[k].update(v)
+            else:
+                self.state[k] = v
+        self.last_heard_from = int(datetime.now().timestamp())
+        logging.debug(f"Updated agent state to {self.state} {self.last_heard_from}")
 
 
 class State:
@@ -33,22 +43,21 @@ class State:
                 self._connected_agents.pop(agent)
                 logging.info(f"{agent} disconnected")
 
-    def update_agent(self, agent: bytes, state_value: bytes):
-        state = Statuses(state_value)
+    def update_agent(self, agent: bytes, state: dict):
         with self.lock:
             if agent not in self._connected_agents:
                 self._connected_agents[agent] = Agent(state, int(datetime.now().timestamp()))
-                logging.info(f"{agent} connected, state: {state.name}")
+                logging.info(f"{agent} connected, state: {state}")
             else:
-                self._connected_agents[agent] = Agent(state, int(datetime.now().timestamp()))
+                self._connected_agents[agent].update(state)
 
-    def current_agents_status(self):
+    def current_agents_state(self):
         with self.lock:
-            return {a.decode('utf-8'): s.status.name for a, s in self._connected_agents.items()}
+            return {a.decode('utf-8'): s.state for a, s in self._connected_agents.items()}
 
     def all_agents_finished(self):
-        agents = self.current_agents_status()
-        statuses = set(agents.items())
+        agents = self.current_agents_state()
+        statuses = set([i['status'] for i in agents])
         if len(statuses) == 1 and Statuses.TEST_FINISHED in statuses:
             return True
         return False
