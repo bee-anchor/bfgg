@@ -68,11 +68,11 @@ class TestRunner(threading.Thread):
                     test_process.terminate()
                     logging.error(f"No test was run, check the test class provided: {self.test}")
                     handle_state_change(status=Statuses.ERROR,
-                                        extra_info="No test was run, please check the test class provided")
+                                        extra_info="No test was ran, please check the test class provided")
                     break
                 elif f"Simulation {self.test} completed".encode('utf-8') in line:
                     test_process.terminate()
-                    handle_state_change(status=Statuses.TEST_FINISHED, test_running=None, extra_info="Test has finished successfully")
+                    handle_state_change(status=Statuses.TEST_FINISHED, test_running=None)
                     logging.info(f"Test {self.test} finished!")
                     break
 
@@ -92,5 +92,5 @@ class TestRunner(threading.Thread):
         if self.test_process is not None:
             os.killpg(os.getpgid(self.test_process.pid), 15)
             self.test_process.terminate()
-            handle_state_change(status=Statuses.TEST_STOPPED, extra_info="Test has been stopped")
+            handle_state_change(status=Statuses.TEST_STOPPED)
             logging.info("Test manually stopped")
