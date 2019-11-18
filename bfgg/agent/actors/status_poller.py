@@ -12,7 +12,7 @@ class State:
     def __init__(self):
         self.attributes: dict = {
             "status": Statuses.AVAILABLE.value,
-            "cloned_repos": [],
+            "cloned_repos": set(),
             "test_running": "None",
             "extra_info": "None"
         }
@@ -34,9 +34,8 @@ class StatusPoller(threading.Thread):
         while True:
             try:
                 for k, v in STATE_QUEUE.get_nowait().items():
-                    if type(self.state.attributes[k]) == list:
-                        if v not in self.state.attributes[k]:
-                            self.state.attributes[k].append(v)
+                    if type(v) == set:
+                        self.state.attributes[k].update(v)
                     else:
                         self.state.attributes[k] = v
             except Empty:

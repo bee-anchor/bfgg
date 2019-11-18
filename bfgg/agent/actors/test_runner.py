@@ -49,14 +49,16 @@ class TestRunner(threading.Thread):
                 line = line_getter.result(timeout=30)
             except futures.TimeoutError:
                 test_process.terminate()
-                handle_state_change(status=Statuses.TEST_ERROR.value, extra_info="No output from gatling for 30s, gatling process terminated")
+                handle_state_change(status=Statuses.TEST_ERROR.value,
+                                    extra_info="No output from gatling for 30s, gatling process terminated")
                 logging.error("no output from gatling for 30s, gatling process terminated")
                 break
             else:
                 logging.debug(line.decode('utf-8').rstrip())
                 if line == b'':
                     test_process.terminate()
-                    handle_state_change(status=Statuses.TEST_ERROR.value, extra_info="Gatling output ended unexpectedly, gatling process terminated")
+                    handle_state_change(status=Statuses.TEST_ERROR.value,
+                                        extra_info="Gatling output ended unexpectedly, gatling process terminated")
                     logging.error("gatling output ended unexpectedly, gatling process terminated")
                     break
                 elif f"Simulation {self.test} started".encode('utf-8') in line:
@@ -66,6 +68,8 @@ class TestRunner(threading.Thread):
                 elif b"No tests to run for Gatling" in line:
                     test_process.terminate()
                     logging.error(f"No test was run, check the test class provided: {self.test}")
+                    handle_state_change(status=Statuses.TEST_ERROR.value,
+                                        extra_info="No test was run, please check the test class provided")
                     break
                 elif f"Simulation {self.test} completed".encode('utf-8') in line:
                     test_process.terminate()

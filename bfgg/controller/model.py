@@ -8,10 +8,20 @@ from dataclasses import dataclass
 from datetime import datetime
 from dotenv import load_dotenv
 
-@dataclass
+
+@dataclass()
 class Agent:
-    attributes: dict
+    state: dict
     last_heard_from: int
+
+    def update(self, new_attributes):
+        for k, v in new_attributes.items():
+            if type(v) is set:
+                self.state[k].update(v)
+            else:
+                self.state[k] = v
+        self.last_heard_from = int(datetime.now().timestamp())
+        logging.debug(f"Updated agent state to {self.state} {self.last_heard_from}")
 
 
 class State:
@@ -37,11 +47,11 @@ class State:
                 self._connected_agents[agent] = Agent(state, int(datetime.now().timestamp()))
                 logging.info(f"{agent} connected, state: {state}")
             else:
-                self._connected_agents[agent] = Agent(state, int(datetime.now().timestamp()))
+                self._connected_agents[agent].update(state)
 
     def current_agents_state(self):
         with self.lock:
-            return {a.decode('utf-8'): s.attributes for a, s in self._connected_agents.items()}
+            return {a.decode('utf-8'): s.state for a, s in self._connected_agents.items()}
 
     def handle_dead_agents(self):
         current_time = int(datetime.now().timestamp())
