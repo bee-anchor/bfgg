@@ -7,6 +7,8 @@ from bfgg.controller.model import (STATE, CONTEXT, OUTGOING_QUEUE, INCOMING_PORT
 
 from flask import Flask
 from flask_cors import CORS
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
+from prometheus_client import make_wsgi_app
 from bfgg.controller.api import api
 
 DEFAULT_LOGGING = {
@@ -23,10 +25,11 @@ logging.config.dictConfig(DEFAULT_LOGGING)
 
 
 def create_app():
-    app = Flask(__name__)
-    CORS(app)
-    app.register_blueprint(api.bp)
-    return app
+    main_app = Flask(__name__)
+    CORS(main_app)
+    main_app.register_blueprint(api.bp)
+    app_dispatcher = DispatcherMiddleware(main_app, {'/metrics': make_wsgi_app()})
+    return app_dispatcher
 
 
 def create_controller(context=CONTEXT, incoming_port=INCOMING_PORT, outgoing_port=OUTGOING_PORT,

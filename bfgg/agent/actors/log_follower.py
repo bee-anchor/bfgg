@@ -39,10 +39,9 @@ class LogFollower(threading.Thread):
         while True:
             sleep(LOG_SEND_INTERVAL)
             logs = log_file.read()
-            logging.info(logs)
             if logs:
                 OUTGOING_QUEUE.put(OutgoingMessage(LOG, logs.encode('utf-8')))
-                logging.info("Log queued")
+                logging.debug("Log queued")
             if self.stop_thread:
-                logging.info("Stopping log follower")
+                logging.debug("Stopping log follower")
                 break
