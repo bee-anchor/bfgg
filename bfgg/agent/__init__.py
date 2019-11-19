@@ -1,4 +1,5 @@
 import logging.config
+import signal
 import zmq
 import os
 from bfgg.agent.message_handlers.incoming import IncomingMessageHandler
@@ -31,14 +32,16 @@ def create_agent(identity=IDENTITY, controller_host=CONTROLLER_HOST, agent_messa
         return
 
     context = zmq.Context()
-
+    # Can't be daemon, to keep process alive, and to allow it to spawn children
     incoming_message_handler = IncomingMessageHandler(context, controller_host, agent_messaging_port,
                                                       tests_location, results_folder, gatling_location)
     incoming_message_handler.start()
 
     outgoing_message_handler = OutgoingMessageHandler(context, controller_host, controller_messaging_port,
                                                       identity.encode('utf-8'))
+    outgoing_message_handler.daemon = True
     outgoing_message_handler.start()
 
     status_poller = StatusPoller()
+    status_poller.daemon = True
     status_poller.start()

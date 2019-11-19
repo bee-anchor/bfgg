@@ -35,6 +35,7 @@ def create_controller(context=CONTEXT, incoming_port=INCOMING_PORT, outgoing_por
 
     incoming_message_handler = IncomingMessageHandler(context, incoming_port, results_folder, state, gatling_location,
                                                       s3_bucket, s3_region)
+    incoming_message_handler.daemon = True
     incoming_message_handler.start()
 
     outgoing_message_handler = OutgoingMessageHandler(context, outgoing_port, state, outgoing_queue)
