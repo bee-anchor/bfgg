@@ -29,7 +29,7 @@ def create_app():
     CORS(main_app)
     main_app.register_blueprint(api.bp)
     main_app.wsgi_app = DispatcherMiddleware(main_app.wsgi_app, {
-        '/metrics': make_wsgi_app
+        '/metrics': make_wsgi_app()
     })
     return main_app
 
