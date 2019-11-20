@@ -135,6 +135,6 @@ GET /results
 
 ## Unit Tests
 
-To run the bfgg python unit tests: `python -m unittest`
+To run the bfgg python unit tests: `pytest test/`
 
 
