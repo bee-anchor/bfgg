@@ -4,7 +4,7 @@ from unittest.mock import patch
 from marshmallow import ValidationError
 from bfgg.controller import create_app
 from bfgg.utils.statuses import Statuses
-from bfgg.utils.messages import OutgoingMessage, CLONE, START_TEST
+from bfgg.utils.messages import OutgoingMessage, CLONE, START_TEST, STOP_TEST
 
 
 class ApiTest(unittest.TestCase):
@@ -61,6 +61,12 @@ class ApiTest(unittest.TestCase):
         expected_task = f"{self.start_data['project']},{self.start_data['testClass']},{self.start_data['javaOpts']}".encode('utf-8')
         outgoing_queue_mock.put.assert_called_with(OutgoingMessage(START_TEST, expected_task))
 
+    @patch('bfgg.controller.api.OUTGOING_QUEUE')
+    def test_stop(self, outgoing_queue_mock):
+        res = self.client().post('/stop')
+        self.assertEqual(200, res.status_code)
+        outgoing_queue_mock.put.assert_called_with(OutgoingMessage(STOP_TEST, b"STOP"))
+
     # /status uses a custom deserialiser so test is checking a few different json types just to make sure it behaves as expected
     @patch("bfgg.controller.api.STATE", **{
         'current_agents_state.return_value': {
@@ -86,6 +92,15 @@ class ApiTest(unittest.TestCase):
         }
         self.assertEqual(200, res.status_code)
         self.assertDictEqual(expected, json.loads(res.data))
+
+    @patch('bfgg.controller.api.ReportHandler', **{
+        'return_value.run.return_value': 'http://www.example.com'
+    })
+    def test_results(self, report_handler_mock):
+        res = self.client().get('/results')
+        self.assertEqual(200, res.status_code)
+        self.assertIn('http://www.example.com', next(res.response).decode('utf-8'))
+
 
 
 
