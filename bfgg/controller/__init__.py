@@ -28,8 +28,10 @@ def create_app():
     main_app = Flask(__name__)
     CORS(main_app)
     main_app.register_blueprint(api.bp)
-    app_dispatcher = DispatcherMiddleware(main_app, {'/metrics': make_wsgi_app()})
-    return app_dispatcher
+    main_app.wsgi_app = DispatcherMiddleware(main_app.wsgi_app, {
+        '/metrics': make_wsgi_app
+    })
+    return main_app
 
 
 def create_controller(context=CONTEXT, incoming_port=INCOMING_PORT, outgoing_port=OUTGOING_PORT,
