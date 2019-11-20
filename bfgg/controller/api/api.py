@@ -1,7 +1,7 @@
 import os
 from marshmallow import ValidationError, EXCLUDE
 from dotenv import load_dotenv
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
 import json
 from bfgg.utils.messages import OutgoingMessage, CLONE, START_TEST, STOP_TEST
 from bfgg.controller.model import STATE
@@ -27,7 +27,7 @@ def clone():
     try:
         result = CloneSchema().load(request.get_json(force=True), unknown=EXCLUDE)
     except ValidationError as err:
-        return err.messages, bad_request
+        return jsonify(err.messages), 400
     repo = result['repo']
     OUTGOING_QUEUE.put(OutgoingMessage(CLONE, repo.encode('utf-8')))
     return {
@@ -40,7 +40,7 @@ def start():
     try:
         result = StartSchema().load(request.get_json(force=True), unknown=EXCLUDE)
     except ValidationError as err:
-        return err.messages, bad_request
+        return jsonify(err.messages), bad_request
     project = result['project']
     test = result['testClass']
     javaOpts = result.get('javaOpts', '')
