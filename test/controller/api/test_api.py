@@ -17,7 +17,6 @@ class ApiTest(unittest.TestCase):
     }
 
     def setUp(self):
-        """Define test variables and initialize app."""
         self.app = create_app()
         self.app.testing = True
         self.client = self.app.test_client

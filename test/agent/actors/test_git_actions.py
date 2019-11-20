@@ -4,13 +4,13 @@ from bfgg.agent.actors.git_actions import clone_repo
 from bfgg.utils.statuses import Statuses
 
 
-class MyTestCase(unittest.TestCase):
+class TestGitActions(unittest.TestCase):
 
     @patch("subprocess.Popen", side_effect=FileNotFoundError)
     @patch("bfgg.agent.actors.git_actions.handle_state_change")
     def test_clone_repo_directory_doesnt_exist(self, state_change_mock, popen_mock):
         clone_repo("git@git.org:foo/bar.git", "a/b/c")
-        self.assertEqual(2, state_change_mock.call_count)
+        self.assertEqual(1, state_change_mock.call_count)
         state_change_mock.assert_called_with(status=Statuses.ERROR, extra_info="Exception found when cloning. Please make sure the directory for cloning repositories exists.")
 
     @patch("subprocess.Popen")
