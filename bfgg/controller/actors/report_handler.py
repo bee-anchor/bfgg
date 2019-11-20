@@ -63,6 +63,7 @@ class ReportHandler():
                                                              ContentType=self._content_type_from_file(sub_file))
 
         url = f'https://{self.s3_bucket}.s3.amazonaws.com/{folder}/index.html'
+        logging.info(url)
         return url
 
     def run(self):

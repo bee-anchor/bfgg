@@ -10,7 +10,6 @@ from dotenv import load_dotenv
 from bfgg.utils.statuses import Statuses
 
 
-
 @dataclass
 class Agent:
     state: dict
@@ -69,7 +68,8 @@ class State:
                 # not heard from agent for over 20 seconds, something is wrong....
                 if current_time - info.last_heard_from > 20:
                     self._connected_agents.pop(agent)
-                    logging.warning(f"Agent {agent.decode('utf-8')} has not been heard from for a while, removing from connected list")
+                    logging.warning(f"Agent {agent.decode('utf-8')} has not been heard "
+                                    f"from for a while, removing from connected list")
 
 
 load_dotenv()

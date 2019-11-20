@@ -36,7 +36,7 @@ class IncomingMessageHandler(threading.Thread):
                     self.test_runner.start()
                 elif type == STOP_TEST:
                     if self.test_runner:
-                        self.test_runner.stop_test()
+                        self.test_runner.stop_runner = True
                 else:
                     print(identity, type, message)
             except Exception as e:
