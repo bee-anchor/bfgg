@@ -27,7 +27,8 @@ class AgentModelTest(unittest.TestCase):
             "cloned_repos": {"New repo"},
             "test_running": "New test"
         }
-        handle_state_change(status=Statuses.TEST_FINISHED, cloned_repo="New repo", test_running="New test", extra_info="Really important stuff")
+        handle_state_change(status=Statuses.TEST_FINISHED, cloned_repo="New repo", test_running="New test",
+                            extra_info="Really important stuff")
 
         outgoing_queue_mock.put.assert_called_with(OutgoingMessage(STATUS, pickle.dumps(expected)))
         state_queue_mock.put.assert_called_with(expected)

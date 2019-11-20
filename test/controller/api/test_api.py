@@ -66,7 +66,8 @@ class ApiTest(unittest.TestCase):
         self.assertEqual(200, res.status_code)
         outgoing_queue_mock.put.assert_called_with(OutgoingMessage(STOP_TEST, b"STOP"))
 
-    # /status uses a custom deserialiser so test is checking a few different json types just to make sure it behaves as expected
+    # /status uses a custom deserialiser so test is checking a few different json types just to make sure it behaves
+    # as expected
     @patch("bfgg.controller.api.STATE", **{
         'current_agents_state.return_value': {
             "a": {1, 2, 3},

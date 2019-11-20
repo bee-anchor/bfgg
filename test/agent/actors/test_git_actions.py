@@ -11,7 +11,9 @@ class TestGitActions(unittest.TestCase):
     def test_clone_repo_directory_doesnt_exist(self, state_change_mock, popen_mock):
         clone_repo("git@git.org:foo/bar.git", "a/b/c")
         self.assertEqual(1, state_change_mock.call_count)
-        state_change_mock.assert_called_with(status=Statuses.ERROR, extra_info="Exception found when cloning. Please make sure the directory for cloning repositories exists.")
+        state_change_mock.assert_called_with(status=Statuses.ERROR,
+                                             extra_info="Exception found when cloning. Please make sure the directory "
+                                                        "for cloning repositories exists.")
 
     @patch("subprocess.Popen")
     @patch("bfgg.agent.actors.git_actions.handle_state_change")
@@ -57,7 +59,9 @@ class TestGitActions(unittest.TestCase):
 
         clone_repo("git@git.org:foo/bar.git", "a/b/c")
         self.assertEqual(2, state_change_mock.call_count)
-        state_change_mock.assert_called_with(status=Statuses.ERROR, extra_info="Could not read from remote repository. Check agent for further details.")
+        state_change_mock.assert_called_with(status=Statuses.ERROR,
+                                             extra_info="Could not read from remote repository. Check agent for "
+                                                        "further details.")
 
 if __name__ == '__main__':
     unittest.main()
