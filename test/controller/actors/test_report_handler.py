@@ -1,20 +1,20 @@
-from unittest.mock import patch, mock_open
 from bfgg.controller.actors.report_handler import ReportHandler
 
-@patch('bfgg.controller.actors.report_handler.subprocess', **{
-    'Popen.return_value.communicate.return_value': (b"Stdout", b"Stderr")
-})
-@patch('bfgg.controller.actors.report_handler.os', **{
-    'listdir.side_effect': [["1.html", "2", "3"], ["2.png"], ["3.json"]],
-    'path.isfile.side_effect': [True, False, False],
-    'path.isdir.return_value': True
-})
-@patch('bfgg.controller.actors.report_handler.boto3')
-@patch('bfgg.controller.actors.report_handler.datetime', **{
-    'now.return_value.strftime.return_value': "NOW"
-})
-@patch('builtins.open', mock_open(read_data="aabbcc"))
-def test_report_handler(datetime_mock, boto3_mock, os_mock, subprocess_mock):
+def test_report_handler(mocker):
+    mocker.patch('bfgg.controller.actors.report_handler.datetime', **{
+     'now.return_value.strftime.return_value': "NOW"
+    })
+    mocker.patch('bfgg.controller.actors.report_handler.os', **{
+        'listdir.side_effect': [["1.html", "2", "3"], ["2.png"], ["3.json"]],
+        'path.isfile.side_effect': [True, False, False],
+        'path.isdir.return_value': True
+    })
+    mocker.patch('bfgg.controller.actors.report_handler.open', mocker.mock_open(read_data="aabbcc"))
+    boto3_mock = mocker.patch('bfgg.controller.actors.report_handler.boto3')
+    subprocess_mock = mocker.patch('bfgg.controller.actors.report_handler.subprocess', **{
+        'Popen.return_value.communicate.return_value': (b"Stdout", b"Stderr")
+    })
+
     results_folder = "a/b/c"
     gatling_folder = "d/e/f"
     bucket = 'my_bucket'
