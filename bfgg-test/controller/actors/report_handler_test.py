@@ -1,9 +1,6 @@
 import unittest
-from unittest.mock import patch, MagicMock, mock_open
+from unittest.mock import patch, mock_open
 from bfgg.controller.actors.report_handler import ReportHandler
-from botocore.stub import Stubber
-import boto3
-
 
 class ReportHandlerTest(unittest.TestCase):
 
