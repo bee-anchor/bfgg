@@ -2,7 +2,7 @@ import threading
 import zmq
 import logging.config
 from bfgg.utils.messages import CLONE, START_TEST, STOP_TEST
-from bfgg.agent.actors.test_runner import TestRunner
+from bfgg.agent.actors.gatling_runner import TestRunner
 from bfgg.agent.actors.git_actions import clone_repo
 
 

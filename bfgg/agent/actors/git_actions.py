@@ -16,7 +16,7 @@ def clone_repo(project: str, tests_location: str):
     except FileNotFoundError:
         logging.error("Directory for cloning doesn't exist")
         handle_state_change(
-            status=Statuses.CLONE_ERROR,
+            status=Statuses.ERROR,
             extra_info="Exception found when cloning. Please make sure the directory for cloning repositories exists.")
         return
     handle_state_change(status=Statuses.CLONING)
@@ -39,7 +39,7 @@ def clone_repo(project: str, tests_location: str):
         handle_state_change(status=Statuses.AVAILABLE, cloned_repo=project_name)
         logging.info(f"Got latest {project_name}")
     elif "fatal: Could not read from remote repository" in stderror:
-        handle_state_change(status=Statuses.CLONE_ERROR,
+        handle_state_change(status=Statuses.ERROR,
                             extra_info="Could not read from remote repository. Check agent for further details.")
     _log_if_present(stdout)
     _log_if_present(stderror)

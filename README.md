@@ -133,4 +133,8 @@ Once a test has run on the agents, get the Gatling results from that run
 GET /results
 ```
 
+## Unit Tests
+
+To run the bfgg python unit tests: `pytest test/`
+
 
