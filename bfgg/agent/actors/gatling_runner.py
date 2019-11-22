@@ -80,7 +80,7 @@ class TestRunner(threading.Thread):
                     break
                 elif f"Simulation {self.test} completed".encode('utf-8') in line:
                     self._stop_processes()
-                    handle_state_change(status=Statuses.TEST_FINISHED, test_running=None)
+                    handle_state_change(status=Statuses.TEST_FINISHED)
                     logging.info(f"Test {self.test} finished!")
                     break
 
@@ -89,9 +89,12 @@ class TestRunner(threading.Thread):
         self._handle_process_output(test_process)
 
     def _stop_processes(self):
-        if self.test_process:
-            os.killpg(os.getpgid(self.test_process.pid), signal.SIGTERM)
-            self.test_process.terminate()
+        try:
+            if self.test_process:
+                os.killpg(os.getpgid(self.test_process.pid), signal.SIGTERM)
+                self.test_process.terminate()
+        except ProcessLookupError:
+            logging.warning("Process has already been terminated - Gatling may have crashed")
         if self.log_follower:
             self.log_follower.stop_thread = True
 
