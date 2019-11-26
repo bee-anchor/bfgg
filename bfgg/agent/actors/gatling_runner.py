@@ -11,6 +11,8 @@ from bfgg.agent.model import handle_state_change
 
 class TestRunner(threading.Thread):
 
+
+
     def __init__(self, gatling_location: str, tests_location: str, results_folder: str, project: str, test: str,
                  java_opts: str):
         threading.Thread.__init__(self)
@@ -23,6 +25,7 @@ class TestRunner(threading.Thread):
         self.stop_runner = False
         self.test_process = None
         self.log_follower = None
+        self.is_running = False
 
     def _start_test_process(self):
         environ = os.environ.copy()
@@ -44,49 +47,41 @@ class TestRunner(threading.Thread):
         self.test_process = test_process
         return test_process
 
-    def _handle_process_output(self, test_process):
+    def _handle_process(self, test_process):
         executor = futures.ThreadPoolExecutor(max_workers=1)
-        while True:
+        while self.is_running:
             if self.stop_runner:
                 self._stop_test()
-                break
             line_getter = executor.submit(test_process.stdout.readline)
             try:
                 line = line_getter.result(timeout=30)
             except futures.TimeoutError:
-                self._stop_processes()
-                handle_state_change(status=Statuses.ERROR,
-                                    extra_info="No output from gatling for 30s, gatling process terminated")
-                break
+                self._handle_error("No output from gatling for 30s, gatling process terminated")
             else:
-                logging.debug(line.decode('utf-8').rstrip())
-                if line == b'':
-                    self._stop_processes()
-                    handle_state_change(status=Statuses.ERROR,
-                                        extra_info="Gatling output ended unexpectedly, gatling process terminated")
-                    logging.error("gatling output ended unexpectedly, gatling process terminated")
-                    break
-                elif f"Simulation {self.test} started".encode('utf-8') in line:
-                    handle_state_change(status=Statuses.TEST_RUNNING, test_running=f"{self.project} - {self.test}")
-                    logging.info(f"Test {self.test} started")
-                    self.log_follower = LogFollower(self.results_folder)
-                    self.log_follower.daemon = True
-                    self.log_follower.start()
-                elif b"No tests to run for Gatling" in line:
-                    self._stop_processes()
-                    logging.error(f"No test was run, check the test class provided: {self.test}")
-                    handle_state_change(status=Statuses.ERROR,
-                                        extra_info="No test was ran, please check the test class provided")
-                    break
-                elif f"Simulation {self.test} completed".encode('utf-8') in line:
-                    self._stop_processes()
-                    handle_state_change(status=Statuses.TEST_FINISHED)
-                    logging.info(f"Test {self.test} finished!")
-                    break
+                print(line)
+                self._handle_process_output(line)
+
+    def _handle_process_output(self, line):
+        logging.debug(line.decode('utf-8').rstrip())
+        if line == b'':
+            self._handle_error(f"Gatling output ended unexpectedly, gatling process terminated: {self.test}")
+        elif f"Simulation {self.test} started".encode('utf-8') in line:
+            handle_state_change(status=Statuses.TEST_RUNNING, test_running=f"{self.project} - {self.test}")
+            logging.info(f"Test {self.test} started")
+            self.log_follower = LogFollower(self.results_folder)
+            self.log_follower.daemon = True
+            self.log_follower.start()
+        elif b"No tests to run for Gatling" in line:
+            self._handle_error(f"No test was run, check the test class provided: {self.test}")
+        elif f"Simulation {self.test} completed".encode('utf-8') in line:
+            self._stop_processes()
+            handle_state_change(status=Statuses.TEST_FINISHED)
+            logging.info(f"Test {self.test} finished!")
 
     def run(self):
         test_process = self._start_test_process()
-        self._handle_process_output(test_process)
+        self.is_running = True
+        self._handle_process(test_process)
 
     def _stop_processes(self):
         try:
@@ -97,8 +92,17 @@ class TestRunner(threading.Thread):
             logging.warning("Process has already been terminated - Gatling may have crashed")
         if self.log_follower:
             self.log_follower.stop_thread = True
+        self.is_running = False
 
     def _stop_test(self):
         self._stop_processes()
         handle_state_change(status=Statuses.TEST_STOPPED)
         logging.info("Test manually stopped")
+        self.is_running = False
+
+    def _handle_error(self, msg):
+        self._stop_processes()
+        handle_state_change(status=Statuses.ERROR,
+                            extra_info=msg)
+        logging.error(msg)
+        self.is_running = False
