@@ -31,8 +31,9 @@ class LogFollower(threading.Thread):
                 else:
                     sleep(1)
                     continue
-            except ValueError:
+            except ValueError as e:
                 # no folders exist yet, keep waiting
+                logging.debug(e)
                 sleep(1)
                 continue
 
