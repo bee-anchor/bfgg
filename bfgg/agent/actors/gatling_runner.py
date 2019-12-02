@@ -58,7 +58,6 @@ class TestRunner(threading.Thread):
             except futures.TimeoutError:
                 self._handle_error("No output from gatling for 30s, gatling process terminated")
             else:
-                print(line)
                 self._handle_process_output(line)
 
     def _handle_process_output(self, line):
