@@ -25,7 +25,8 @@ class ReportHandler():
             "xml": "application/xml",
             "ico": "image/x-icon",
             "log": "text/plain",
-            "svg": "image/svg+xml"
+            "svg": "image/svg+xml",
+            "offset": "text/plain"
         }
 
         type = filename.split('.')[-1]
@@ -44,24 +45,19 @@ class ReportHandler():
         logging.info(stdout)
 
     def _upload_results(self):
-
         folder = datetime.now().strftime("%Y%m%d_%H%M")
         s3 = boto3.resource('s3', region_name=self.s3_region)
-
-        for file in os.listdir(self.results_folder):
-            path = os.path.join(self.results_folder, file)
-            if os.path.isfile(path):
-                with open(path, "rb") as opened_file:
-                    s3.Bucket(self.s3_bucket).put_object(Key=f"{folder}/{file}", Body=opened_file.read(), ACL='private',
-                                                         ContentType=self._content_type_from_file(file))
-            elif os.path.isdir(path):
-                # report created only has one level of nesting
-                for sub_file in os.listdir(os.path.join(self.results_folder, file)):
-                    with open(os.path.join(path, sub_file), "rb") as opened_file:
-                        s3.Bucket(self.s3_bucket).put_object(Key=f"{folder}/{file}/{sub_file}", Body=opened_file.read(),
-                                                             ACL='private',
-                                                             ContentType=self._content_type_from_file(sub_file))
-
+        for path,_,files in os.walk(self.results_folder):
+            for file in files:
+                # if we're in the top directory
+                current_folder = os.path.basename(path)
+                if current_folder == os.path.basename(self.results_folder):
+                    filename = f'{folder}/{file}'
+                else:
+                    filename = f'{folder}/{current_folder}/{file}'
+                extra_args = {'ACL': 'private', 'ContentType': self._content_type_from_file(file)}
+                s3.Object(self.s3_bucket, filename).upload_file(Filename=os.path.join(path, file),
+                                                                ExtraArgs=extra_args)
         url = f'https://{self.s3_bucket}.s3.amazonaws.com/{folder}/index.html'
         logging.info(url)
         return url

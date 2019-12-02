@@ -20,14 +20,20 @@ class LogFollower(threading.Thread):
             result_folders = os.listdir(self.results_folder)
             folders = [os.path.join(self.results_folder, x) for x in result_folders if
                        os.path.isdir(os.path.join(self.results_folder, x))]
-            newest_folder = max(folders, key=os.path.getmtime)
-            newest_folder_mtime = os.path.getmtime(newest_folder)
-            now = datetime.now().timestamp()
-            # folder should have been modified recently
-            if (now - newest_folder_mtime) < 3:
-                path = os.path.join(newest_folder, "simulation.log")
-                return path
-            else:
+            try:
+                newest_folder = max(folders, key=os.path.getmtime)
+                newest_folder_mtime = os.path.getmtime(newest_folder)
+                now = datetime.now().timestamp()
+                # folder should have been modified recently
+                if (now - newest_folder_mtime) < 3:
+                    path = os.path.join(newest_folder, "simulation.log")
+                    return path
+                else:
+                    sleep(1)
+                    continue
+            except ValueError as e:
+                # no folders exist yet, keep waiting
+                logging.debug(e)
                 sleep(1)
                 continue
 

@@ -38,7 +38,7 @@ IDENTITY = get_identity(CONTROLLER_HOST)
 
 
 def handle_state_change(message_type: str = STATUS, status: Statuses = None, cloned_repo: str = None,
-                        test_running: str = None, extra_info: str = 'None'):
+                        test_running: str = 'None', extra_info: str = 'None'):
     new_state = {
         "extra_info": extra_info
     }
