@@ -1,6 +1,7 @@
-from marshmallow import ValidationError
-from bfgg.controller.api.api_schemas import StartSchema, CloneSchema
 import pytest
+from marshmallow import ValidationError
+
+from bfgg.controller.api.api_schemas import StartSchema, CloneSchema
 
 
 def test_start_schema_valid_input():

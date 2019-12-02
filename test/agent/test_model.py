@@ -1,7 +1,9 @@
 import pickle
+
 from bfgg.agent.model import get_identity, handle_state_change
-from bfgg.utils.statuses import Statuses
 from bfgg.utils.messages import OutgoingMessage, STATUS
+from bfgg.utils.statuses import Statuses
+
 
 def test_get_identity(mocker):
     socket_mock = mocker.patch('socket.socket', **{

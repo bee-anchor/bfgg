@@ -1,8 +1,10 @@
 import json
+
 from marshmallow import ValidationError
+
 from bfgg.controller import create_app
-from bfgg.utils.statuses import Statuses
 from bfgg.utils.messages import OutgoingMessage, CLONE, START_TEST, STOP_TEST
+from bfgg.utils.statuses import Statuses
 
 repo = "git@bitbucket.org:blah/bleh.git"
 clone_data = {'repo': repo}
@@ -23,10 +25,12 @@ def _base_mocker(mocker, schema=None, type=None, value=None):
         })
     return outgoing_queue_mock
 
+
 def test_clone_bad_request(mocker):
     _base_mocker(mocker, 'CloneSchema', 'side_effect', ValidationError('error'))
     res = client().post('/clone', content_type="'application/json'", data=json.dumps(clone_data))
     assert 400 == res.status_code
+
 
 def test_clone(mocker):
     outgoing_queue_mock = _base_mocker(mocker, 'CloneSchema', 'return_value', {'repo': repo})
@@ -35,10 +39,12 @@ def test_clone(mocker):
     assert 200 == res.status_code
     outgoing_queue_mock.put.assert_called_with(OutgoingMessage(CLONE, repo.encode('utf-8')))
 
+
 def test_start_bad_request(mocker):
     _base_mocker(mocker, 'StartSchema', 'side_effect', ValidationError('error'))
     res = client().post('/start', content_type="'application/json'", data=json.dumps(start_data))
     assert 400 == res.status_code
+
 
 def test_start(mocker):
     outgoing_queue_mock = _base_mocker(mocker, 'StartSchema', 'return_value', start_data)
@@ -48,6 +54,7 @@ def test_start(mocker):
     create_folder_mock.assert_called_once()
     expected_task = f"{start_data['project']},{start_data['testClass']},{start_data['javaOpts']}".encode('utf-8')
     outgoing_queue_mock.put.assert_called_with(OutgoingMessage(START_TEST, expected_task))
+
 
 def test_stop(mocker):
     outgoing_queue_mock = _base_mocker(mocker)
@@ -82,6 +89,7 @@ def test_status(mocker):
     }
     assert 200 == res.status_code
     assert expected == json.loads(res.data)
+
 
 def test_results(mocker):
     mocker.patch('bfgg.controller.api.ReportHandler', **{

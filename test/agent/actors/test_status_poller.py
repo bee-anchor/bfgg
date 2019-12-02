@@ -1,6 +1,8 @@
-from bfgg.agent.actors.status_poller import StatusPoller
 from queue import Empty
+
+from bfgg.agent.actors.status_poller import StatusPoller
 from bfgg.utils.statuses import Statuses
+
 
 def test_status_poller_get_latest_status(mocker):
     new_state = {

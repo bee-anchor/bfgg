@@ -1,7 +1,8 @@
+import pickle
+
 from bfgg.controller.message_handlers.incoming import IncomingMessageHandler
 from bfgg.utils.messages import LOG, STATUS, BYE, START_TEST, FINISHED_TEST
 from bfgg.utils.statuses import Statuses
-import pickle
 
 port = 'port'
 results_folder = '/results'
@@ -9,15 +10,16 @@ gatling_location = '/gatling'
 s3_bucket = 'bucket'
 s3_region = 'region'
 
+
 def setup_mocks(mocker, return_value):
-    state_mock = mocker.patch('bfgg.controller.message_handlers.incoming.State', **{
-    })
+    state_mock = mocker.patch('bfgg.controller.message_handlers.incoming.State')
     zmq_mock = mocker.patch('bfgg.controller.message_handlers.incoming.zmq', **{
         f'socket.return_value.recv_multipart.return_value': return_value
     })
     metrics_mock = mocker.patch('bfgg.controller.message_handlers.incoming.MetricsHandler')
 
     return state_mock, zmq_mock, metrics_mock
+
 
 def test_controller_message_handler_loop_log(mocker):
     state_mock, zmq_mock, metrics_mock = setup_mocks(mocker, (b'Identity', LOG, b'Message'))

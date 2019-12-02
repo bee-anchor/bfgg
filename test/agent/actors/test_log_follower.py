@@ -1,9 +1,10 @@
 from bfgg.agent.actors.log_follower import LogFollower, os
 
 results_folder = '/results'
+folders = ['A', 'B', 'C', 'D']
+
 
 def test_log_follower_get_current_logfile(mocker):
-    folders = ['A', 'B', 'C', 'D']
     os_mock = mocker.patch('bfgg.agent.actors.log_follower.os', **{
         'listdir.return_value': folders,
         'path.isdir.side_effect': [True, True, False, False],
@@ -22,7 +23,6 @@ def test_log_follower_get_current_logfile(mocker):
 
 
 def test_log_follower_get_current_logfile_folder_is_old(mocker):
-    folders = ['A', 'B', 'C', 'D']
     mocker.patch('bfgg.agent.actors.log_follower.os', **{
         'listdir.return_value': folders,
         'path.isdir.side_effect': [True, True, False, False, True, True, False, False],
@@ -41,7 +41,6 @@ def test_log_follower_get_current_logfile_folder_is_old(mocker):
 
 
 def test_log_follower_get_current_logfile_folder_doesnt_exist(mocker):
-    folders = ['A', 'B', 'C', 'D']
     mocker.patch('bfgg.agent.actors.log_follower.os', **{
         'listdir.side_effect': folders,
         'path.isdir.side_effect': [True, True, False, False],
