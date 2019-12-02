@@ -1,13 +1,13 @@
 from bfgg.agent.actors.git_actions import clone_repo
 from bfgg.utils.statuses import Statuses
 
-def base_mocker(mocker):
+def setup_mocks(mocker):
     state_mock = mocker.patch('bfgg.agent.actors.git_actions.handle_state_change')
     subprocess_mock = mocker.patch('subprocess.Popen')
     return state_mock, subprocess_mock
 
 def test_clone_repo_directory_doesnt_exist(mocker):
-    state_mock, subprocess_mock = base_mocker(mocker)
+    state_mock, subprocess_mock = setup_mocks(mocker)
     subprocess_mock.side_effect = FileNotFoundError
     clone_repo("git@git.org:foo/bar.git", "a/b/c")
     assert 1 == state_mock.call_count
@@ -16,7 +16,7 @@ def test_clone_repo_directory_doesnt_exist(mocker):
                                                     "for cloning repositories exists.")
 
 def test_clone_repo_success(mocker):
-    state_mock, subprocess_mock = base_mocker(mocker)
+    state_mock, subprocess_mock = setup_mocks(mocker)
     subprocess_mock.return_value.communicate.return_value = b"stdout", b"""
             remote: Counting objects: 971, done.
             remote: Compressing objects: 100% (854/854), done.
@@ -30,7 +30,7 @@ def test_clone_repo_success(mocker):
 
 
 def test_clone_repo_already_exists(mocker):
-    state_mock, subprocess_mock = base_mocker(mocker)
+    state_mock, subprocess_mock = setup_mocks(mocker)
     subprocess_mock.return_value.communicate.side_effect = [
         (b"stdout", b"fatal: destination path '' already exists and is not an empty directory"),
         (b"stdout", b"""
@@ -46,7 +46,7 @@ def test_clone_repo_already_exists(mocker):
     state_mock.assert_called_with(status=Statuses.AVAILABLE, cloned_repo="bar")
 
 def test_clone_repo_error(mocker):
-    state_mock, subprocess_mock = base_mocker(mocker)
+    state_mock, subprocess_mock = setup_mocks(mocker)
     subprocess_mock.return_value.communicate.return_value = b"stdout", b"""
             Repository '' not found
             fatal: Could not read from remote repository.
