@@ -31,9 +31,15 @@ def get_identity(controller_host):
     return ip
 
 
+def ensure_results_folder():
+    if not os.path.exists(RESULTS_FOLDER):
+        os.mkdir(RESULTS_FOLDER)
+
+
 OUTGOING_QUEUE = Queue()
 STATE_QUEUE = Queue()
 
+ensure_results_folder()
 IDENTITY = get_identity(CONTROLLER_HOST)
 
 

@@ -1,5 +1,4 @@
 import logging.config
-import signal
 import zmq
 import os
 from bfgg.agent.message_handlers.incoming import IncomingMessageHandler
