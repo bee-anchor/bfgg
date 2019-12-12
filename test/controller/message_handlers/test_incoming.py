@@ -2,7 +2,7 @@ import pickle
 
 from bfgg.controller.message_handlers.incoming import IncomingMessageHandler
 from bfgg.utils.messages import LOG, STATUS, BYE, START_TEST, FINISHED_TEST
-from bfgg.utils.statuses import Statuses
+from bfgg.utils.agentstatus import AgentStatus
 
 port = 'port'
 results_folder = '/results'
@@ -34,7 +34,7 @@ def test_controller_message_handler_loop_log(mocker):
 def test_controller_message_handler_loop_status(mocker):
     message = pickle.dumps(
         {
-            'status': Statuses.TEST_STOPPED,
+            'status': AgentStatus.TEST_STOPPED,
             'cloned_repos': {'a', 'b'},
             'test_running': 'Test',
             'extra_info': 'interesting stuff'

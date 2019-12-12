@@ -47,7 +47,7 @@ class ReportHandler():
     def _upload_results(self):
         folder = datetime.now().strftime("%Y%m%d_%H%M")
         s3 = boto3.resource('s3', region_name=self.s3_region)
-        for path,_,files in os.walk(self.results_folder):
+        for path, _, files in os.walk(self.results_folder):
             for file in files:
                 # if we're in the top directory
                 current_folder = os.path.basename(path)

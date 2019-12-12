@@ -3,7 +3,7 @@ import zmq
 import os
 from bfgg.agent.message_handlers.incoming import IncomingMessageHandler
 from bfgg.agent.message_handlers.outgoing import OutgoingMessageHandler
-from bfgg.agent.actors.status_poller import StatusPoller
+from bfgg.agent.actors.status_handler import StatusHandler
 from bfgg.agent.model import (IDENTITY, CONTROLLER_HOST, AGENT_MESSAGING_PORT, CONTROLLER_MESSAGING_PORT,
                               TESTS_LOCATION, RESULTS_FOLDER, GATLING_LOCATION)
 
@@ -41,6 +41,6 @@ def create_agent(identity=IDENTITY, controller_host=CONTROLLER_HOST, agent_messa
     outgoing_message_handler.daemon = True
     outgoing_message_handler.start()
 
-    status_poller = StatusPoller()
+    status_poller = StatusHandler()
     status_poller.daemon = True
     status_poller.start()

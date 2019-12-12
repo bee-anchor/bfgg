@@ -28,7 +28,7 @@ def test_agent_incoming_message_handler_clone(mocker):
 
 def test_agent_incoming_message_handler_start_test(mocker):
     zmq_mock = setup_mocks(mocker, (b'Identity', START_TEST, b'Project,Test,Java opts'))
-    test_runner_mock = mocker.patch('bfgg.agent.message_handlers.incoming.TestRunner')
+    test_runner_mock = mocker.patch('bfgg.agent.message_handlers.incoming.GatlingRunner')
 
     IncomingMessageHandler(zmq_mock, controller_host, port, tests_location, results_folder,
                            gatling_location)._message_handler_loop()
@@ -44,7 +44,7 @@ def test_agent_incoming_message_handler_stop_test_runner_exists(mocker):
     zmq_mock = setup_mocks(mocker,
                            [(b'Identity', START_TEST, b'Project,Test,Java opts'), (b'Identity', STOP_TEST, b'Stop')],
                            'side_effect')
-    test_runner_mock = mocker.patch('bfgg.agent.message_handlers.incoming.TestRunner')
+    test_runner_mock = mocker.patch('bfgg.agent.message_handlers.incoming.GatlingRunner')
 
     message_handler = IncomingMessageHandler(zmq_mock, controller_host, port, tests_location,
                                              results_folder, gatling_location)
@@ -57,7 +57,7 @@ def test_agent_incoming_message_handler_stop_test_runner_exists(mocker):
 
 def test_agent_incoming_message_handler_stop_test_runner_doesnt_exist(mocker):
     zmq_mock = setup_mocks(mocker, (b'Identity', STOP_TEST, b'Stop'), 'return_value')
-    test_runner_mock = mocker.patch('bfgg.agent.message_handlers.incoming.TestRunner')
+    test_runner_mock = mocker.patch('bfgg.agent.message_handlers.incoming.GatlingRunner')
 
     message_handler = IncomingMessageHandler(zmq_mock, controller_host, port, tests_location, results_folder,
                                              gatling_location)

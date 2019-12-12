@@ -4,7 +4,7 @@ from marshmallow import ValidationError
 
 from bfgg.controller import create_app
 from bfgg.utils.messages import OutgoingMessage, CLONE, START_TEST, STOP_TEST
-from bfgg.utils.statuses import Statuses
+from bfgg.utils.agentstatus import AgentStatus
 
 repo = "git@bitbucket.org:blah/bleh.git"
 clone_data = {'repo': repo}
@@ -64,31 +64,18 @@ def test_stop(mocker):
 
 
 def test_status(mocker):
-    # /status uses a custom deserialiser so test is checking a few different json types just to make sure it behaves
-    # as expected
     mocker.patch("bfgg.controller.api.STATE", **{
-        'current_agents_state.return_value': {
-            "a": {1, 2, 3},
-            "b": Statuses.TEST_FINISHED,
-            "c": [1, 2, 3],
-            "d": {
-                "d1": 123,
-                "d2": "123"
+        'current_agents_state_dict.return_value': {
+            "a": {"status": "AVAILABLE",
+                    "cloned_repos": [],
+                    "test_running": "",
+                    "extra_info": ""}
             }
-        }
     })
     res = client().get('/status')
-    expected = {
-        "a": [1,2,3],
-        "b": "TEST_FINISHED",
-        "c": [1,2,3],
-        "d": {
-            "d1": 123,
-            "d2": "123"
-        }
-    }
+    expected = b'{"a": {"status": "AVAILABLE", "cloned_repos": [], "test_running": "", "extra_info": ""}}'
     assert 200 == res.status_code
-    assert expected == json.loads(res.data)
+    assert res.data == expected
 
 
 def test_results(mocker):

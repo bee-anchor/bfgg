@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class Statuses(Enum):
+class AgentStatus(Enum):
     ERROR = b'0'
     AVAILABLE = b'1'
     TEST_RUNNING = b'2'
@@ -11,4 +11,4 @@ class Statuses(Enum):
 
     @property
     def value(self) -> bytes:
-        return super(Statuses, self).value
+        return super(AgentStatus, self).value

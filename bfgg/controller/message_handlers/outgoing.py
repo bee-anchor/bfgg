@@ -16,7 +16,11 @@ class OutgoingMessageHandler(threading.Thread):
         self.state = state
         self.outgoing_queue = outgoing_queue
         self.identity = b'controller'
-        self.handler = self.context.socket(zmq.PUSH)
+        self.handler = self.context.socket(zmq.ROUTER)
+        self.handler.setsockopt(zmq.ROUTER_MANDATORY, True)
+        # if an agent disconnects and reconnects with the same identity,
+        # router will handover connection to the 'new' one
+        self.handler.setsockopt(zmq.ROUTER_HANDOVER, 1)
         self.handler.bind(f"tcp://*:{self.port}")
 
     def run(self):
@@ -36,7 +40,6 @@ class OutgoingMessageHandler(threading.Thread):
         except Empty:
             return
         if message is not None:
-            current_agents = self.state.connected_agents
-            for _ in current_agents:
-                # round robins to each connected agent
-                self.handler.send_multipart([self.identity, message.type, message.details])
+            for agent in self.state.connected_agents:
+                logging.debug([agent, self.identity, message.type, message.details])
+                self.handler.send_multipart([agent, self.identity, message.type, message.details])
