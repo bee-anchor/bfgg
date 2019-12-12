@@ -60,7 +60,7 @@ class TestGitActions:
         subprocess_mock.return_value.communicate.return_value = b"stdout", b"""
                 Repository '' not found
                 fatal: Could not read from remote repository.
-    
+
                 Please make sure you have the correct access rights
                 and the repository exists.
             """

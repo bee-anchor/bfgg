@@ -83,6 +83,7 @@ def test_controller_message_handler_loop_finished_all_agents(mocker):
     report_handler_mock.assert_called_once_with(results_folder, gatling_location, s3_bucket, s3_region)
     report_handler_mock.return_value.run.assert_called_once()
 
+
 def test_controller_message_handler_loop_finished_not_all_agents(mocker):
     state_mock, zmq_mock, _ = setup_mocks(mocker, (b'Identity', FINISHED_TEST, b'Finish'))
     state_mock.all_agents_finished.return_value = False

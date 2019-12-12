@@ -51,8 +51,8 @@ def test_agent_incoming_message_handler_stop_test_runner_exists(mocker):
     message_handler._message_handler_loop()
     message_handler._message_handler_loop()
 
-    assert 2 == zmq_mock.socket.return_value.recv_multipart.call_count
-    assert True == test_runner_mock.return_value.stop_runner
+    assert zmq_mock.socket.return_value.recv_multipart.call_count == 2
+    assert test_runner_mock.return_value.stop_runner is True
 
 
 def test_agent_incoming_message_handler_stop_test_runner_doesnt_exist(mocker):

@@ -48,4 +48,3 @@ def test_handle_state_change_inc_outgoing(outgoing_queue_mock, state_queue_mock)
     expected_state = AgentState(AgentStatus.TEST_FINISHED, {"New repo"}, "New test", "Really important stuff")
     state_queue_mock.put.assert_called_with(expected_state)
     outgoing_queue_mock.put.assert_called_with(OutgoingMessage(FINISHED_TEST, b"test finished"))
-

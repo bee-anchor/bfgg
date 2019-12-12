@@ -4,7 +4,6 @@ from marshmallow import ValidationError
 
 from bfgg.controller import create_app
 from bfgg.utils.messages import OutgoingMessage, CLONE, START_TEST, STOP_TEST
-from bfgg.utils.agentstatus import AgentStatus
 
 repo = "git@bitbucket.org:blah/bleh.git"
 clone_data = {'repo': repo}
@@ -16,6 +15,7 @@ start_data = {
 app = create_app()
 app.testing = True
 client = app.test_client
+
 
 def _base_mocker(mocker, schema=None, type=None, value=None):
     outgoing_queue_mock = mocker.patch('bfgg.controller.api.OUTGOING_QUEUE')
@@ -67,10 +67,10 @@ def test_status(mocker):
     mocker.patch("bfgg.controller.api.STATE", **{
         'current_agents_state_dict.return_value': {
             "a": {"status": "AVAILABLE",
-                    "cloned_repos": [],
-                    "test_running": "",
-                    "extra_info": ""}
-            }
+                  "cloned_repos": [],
+                  "test_running": "",
+                  "extra_info": ""}
+        }
     })
     res = client().get('/status')
     expected = b'{"a": {"status": "AVAILABLE", "cloned_repos": [], "test_running": "", "extra_info": ""}}'

@@ -9,7 +9,6 @@ from bfgg.controller.api.api_schemas import StartSchema, CloneSchema
 from bfgg.utils.helpers import create_or_empty_folder
 from bfgg.controller import OUTGOING_QUEUE
 from bfgg.controller.actors.report_handler import ReportHandler
-from bfgg.utils.agentstatus import AgentStatus
 
 bp = Blueprint('root', __name__)
 

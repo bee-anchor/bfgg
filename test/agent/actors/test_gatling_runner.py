@@ -37,7 +37,7 @@ def test_runner_handle_process_output_simulation_started(mocker):
 
     state_mock.assert_called_once_with(status=AgentStatus.TEST_RUNNING, test_running=f"{project} - {test}")
     stop_processes_mock.assert_not_called()
-    assert True == mock_low_follower.return_value.daemon
+    assert mock_low_follower.return_value.daemon is True
     mock_low_follower.return_value.start.assert_called_once()
 
 
@@ -82,8 +82,8 @@ def test_runner_stop_processes(mocker):
     mock_os.getpgid.assert_called_once_with('PID')
     mock_os.killpg.assert_called_once_with('PGID', signal.SIGTERM)
     mock_popen.terminate.assert_called_once()
-    assert True == mock_log_follower.stop_thread
-    assert False == runner.is_running
+    assert mock_log_follower.stop_thread is True
+    assert runner.is_running is False
 
 
 def test_runner_stop_test(mocker):
@@ -97,7 +97,7 @@ def test_runner_stop_test(mocker):
 
     stop_processes_mock.assert_called_once()
     state_mock.assert_called_once_with(status=AgentStatus.TEST_STOPPED, test_running='')
-    assert False == runner.is_running
+    assert runner.is_running is False
 
 
 def test_runner_handle_error(mocker):
@@ -111,4 +111,4 @@ def test_runner_handle_error(mocker):
 
     stop_processes_mock.assert_called_once()
     state_mock.assert_called_once_with(status=AgentStatus.ERROR, extra_info='Error', test_running='')
-    assert False == runner.is_running
+    assert runner.is_running is False
