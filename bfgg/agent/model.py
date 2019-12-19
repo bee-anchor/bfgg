@@ -1,8 +1,11 @@
 import socket
+import threading
 import os
 import logging.config
 from queue import Queue
 from dotenv import load_dotenv
+from bfgg.agent.state import State
+from bfgg.agent.state_utils import handle_state_change_partial
 
 
 load_dotenv()
@@ -35,6 +38,9 @@ def ensure_results_folder():
 
 
 OUTGOING_QUEUE = Queue()
+STATE_QUEUE = Queue()
 
 ensure_results_folder()
-IDENTITY = get_identity(CONTROLLER_HOST)
+IDENTITY = os.getenv('AGENT_IDENTITY', default=get_identity(CONTROLLER_HOST))
+STATE = State(threading.Lock())
+handle_state_change = handle_state_change_partial(STATE_QUEUE, OUTGOING_QUEUE)

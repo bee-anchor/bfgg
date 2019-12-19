@@ -15,10 +15,10 @@ def test_agent_outgoing_message_handler_loop(mocker):
     zmq_mock = setup_mocks(mocker)
     OutgoingMessageHandler(zmq_mock, 'localhost', '8080', b'localhost')._message_handler_loop()
     outgoing_queue_mock.get.assert_called_once()
-    zmq_mock.socket.return_value.send_multipart.assert_called_once_with([b'localhost', b'TYPE', b'DETAILS'])
+    zmq_mock.socket.return_value.send_multipart.assert_called_once_with([b'localhost', b'ungrouped', b'TYPE', b'DETAILS'])
 
 
 def test_agent_outgoing_message_handler_exit(mocker):
     zmq_mock = setup_mocks(mocker)
     OutgoingMessageHandler(zmq_mock, 'localhost', '8080', b'localhost').exit_gracefully()
-    zmq_mock.socket.return_value.send_multipart.assert_called_once_with([b'localhost', BYE, b'goodbye'])
+    zmq_mock.socket.return_value.send_multipart.assert_called_once_with([b'localhost', b'ungrouped', BYE, b'goodbye'])

@@ -1,9 +1,10 @@
+from typing import Union
 import threading
 import zmq
 import time
 import logging.config
 from queue import Empty
-from bfgg.utils.messages import OutgoingMessage
+from bfgg.utils.messages import OutgoingMessageGrouped, OutgoingMessageTargeted
 from bfgg.controller.model import State
 
 
@@ -36,10 +37,18 @@ class OutgoingMessageHandler(threading.Thread):
     def _message_handler_loop(self):
         self.state.handle_dead_agents()
         try:
-            message: OutgoingMessage = self.outgoing_queue.get(timeout=1)
+            message: Union[OutgoingMessageGrouped, OutgoingMessageTargeted] = self.outgoing_queue.get(timeout=1)
         except Empty:
             return
         if message is not None:
-            for agent in self.state.connected_agents:
+            self.send_message(message)
+
+    def send_message(self, message: Union[OutgoingMessageGrouped, OutgoingMessageTargeted]):
+        if type(message) is OutgoingMessageGrouped:
+            for agent in self.state.connected_agents_by_group(message.group.decode('utf-8')):
+                logging.debug([agent, self.identity, message.type, message.details])
+                self.handler.send_multipart([agent, self.identity, message.type, message.details])
+        elif type(message) is OutgoingMessageTargeted:
+            for agent in message.targets:
                 logging.debug([agent, self.identity, message.type, message.details])
                 self.handler.send_multipart([agent, self.identity, message.type, message.details])

@@ -1,10 +1,10 @@
 import threading
 import zmq
 import logging.config
-from bfgg.utils.messages import CLONE, START_TEST, STOP_TEST
+from bfgg.utils.messages import CLONE, START_TEST, STOP_TEST, GROUP
 from bfgg.agent.actors.gatling_runner import GatlingRunner
 from bfgg.agent.actors.git_actions import clone_repo
-from bfgg.agent.model import IDENTITY
+from bfgg.agent.model import IDENTITY, handle_state_change
 
 
 class IncomingMessageHandler(threading.Thread):
@@ -46,5 +46,7 @@ class IncomingMessageHandler(threading.Thread):
             self.test_runner.start()
         elif type == STOP_TEST and self.test_runner is not None:
             self.test_runner.stop_runner = True
+        elif type == GROUP:
+            handle_state_change(group=message.decode('utf-8'))
         else:
             logging.warning(f'Received unhandled message, it has been dropped: {identity}, {type}, {message}')

@@ -1,59 +1,68 @@
 from pytest import fixture
-from queue import Empty
+from queue import Empty, Queue
 import pickle
+from threading import Lock
 from bfgg.agent.actors.status_handler import StatusHandler
 from bfgg.utils.agentstatus import AgentStatus
-from bfgg.agent.state_utils import AgentState
+from bfgg.agent.state import StateData, State
 from bfgg.utils.messages import OutgoingMessage, STATUS
 
 
 class TestStatusHandler:
 
-    new_state = AgentState(
+    new_state = StateData(
         status=AgentStatus.TEST_RUNNING,
         cloned_repos=None,
         test_running="test",
-        extra_info="interesting stuff"
+        extra_info="interesting stuff",
+        group=None
     )
 
-    expected_new_state = AgentState(
+    expected_new_state = StateData(
         status=AgentStatus.TEST_RUNNING,
         cloned_repos=set(),
         test_running="test",
-        extra_info="interesting stuff"
+        extra_info="interesting stuff",
+        group="ungrouped"
     )
 
-    expected_original_state = AgentState(
+    expected_original_state = StateData(
         status=AgentStatus.AVAILABLE,
         cloned_repos=set(),
         test_running="",
-        extra_info=""
+        extra_info="",
+        group="ungrouped"
     )
 
     @fixture()
     def mocks(self, mocker):
         mocker.patch('bfgg.agent.actors.status_handler.threading')
-        state_queue = mocker.patch('bfgg.agent.actors.status_handler.STATE_QUEUE')
-        outgoing_queue = mocker.patch('bfgg.agent.actors.status_handler.OUTGOING_QUEUE')
-        yield state_queue, outgoing_queue
+        outgoing_queue = Queue()
+        mocker.spy(outgoing_queue, 'put')
+        state = State(Lock())
+        mocker.spy(state, 'update')
+        yield outgoing_queue, state
 
     def test_handle_state_change_new_state(self, mocks):
-        state_queue, outgoing_queue = mocks
-        state_queue.configure_mock(**{'get.return_value': self.new_state})
+        outgoing_queue, state = mocks
+        state_queue = Queue()
+        state_queue.put(self.new_state)
 
-        status_handler = StatusHandler()
+        status_handler = StatusHandler(state, state_queue, outgoing_queue)
         status_handler._handle_state_change()
-        assert self.expected_new_state == status_handler.state
+        state.update.assert_called_with(self.new_state)
         outgoing_queue.put.assert_called_with(
             OutgoingMessage(STATUS, pickle.dumps(self.expected_new_state))
         )
 
-    def test_handle_state_change_no_state(self, mocks):
-        state_queue, outgoing_queue = mocks
+    def test_handle_state_change_no_state(self, mocks, mocker):
+        outgoing_queue, state = mocks
+        state_queue = mocker.MagicMock(spec=Queue)
         state_queue.configure_mock(**{'get.side_effect': Empty})
-        status_handler = StatusHandler()
+
+        status_handler = StatusHandler(state, state_queue, outgoing_queue)
         status_handler._handle_state_change()
-        assert self.expected_original_state == status_handler.state
+        state_queue.assert_not_called()
         outgoing_queue.put.assert_called_with(
             OutgoingMessage(STATUS, pickle.dumps(self.expected_original_state))
         )

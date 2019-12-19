@@ -6,7 +6,7 @@ import signal
 import logging.config
 from bfgg.agent.actors.log_follower import LogFollower
 from bfgg.utils.agentstatus import AgentStatus
-from bfgg.agent.state_utils import handle_state_change
+from bfgg.agent.model import handle_state_change
 
 
 class GatlingRunner(threading.Thread):

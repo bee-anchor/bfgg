@@ -1,17 +1,18 @@
 import threading
+from queue import Queue
 import logging.config
 from queue import Empty
 import pickle
-from bfgg.agent.model import OUTGOING_QUEUE
-from bfgg.utils.agentstatus import AgentStatus
-from bfgg.agent.state_utils import AgentState, STATE_QUEUE
+from bfgg.agent.state import StateData, State
 from bfgg.utils.messages import OutgoingMessage, STATUS
 
 
 class StatusHandler(threading.Thread):
-    def __init__(self):
+    def __init__(self, state: State, state_queue: Queue, outgoing_queue: Queue):
         threading.Thread.__init__(self)
-        self.state: AgentState = AgentState(AgentStatus.AVAILABLE, set(), "", "")
+        self.state = state
+        self.state_queue = state_queue
+        self.outgoing_queue = outgoing_queue
 
     def run(self):
         logging.info("StatusHandler thread started")
@@ -20,8 +21,8 @@ class StatusHandler(threading.Thread):
 
     def _handle_state_change(self):
         try:
-            state_changes: AgentState = STATE_QUEUE.get(timeout=2)
-            self.state = self.state.update(state_changes)
+            state_changes: StateData = self.state_queue.get(timeout=2)
+            self.state.update(state_changes)
         except Empty:
             pass
-        OUTGOING_QUEUE.put(OutgoingMessage(STATUS, pickle.dumps(self.state)))
+        self.outgoing_queue.put(OutgoingMessage(STATUS, pickle.dumps(self.state.state_data)))

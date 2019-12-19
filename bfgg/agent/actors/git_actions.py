@@ -1,7 +1,7 @@
 import logging.config
 import subprocess
 import os
-from bfgg.agent.state_utils import handle_state_change
+from bfgg.agent.model import handle_state_change
 from bfgg.utils.agentstatus import AgentStatus
 
 

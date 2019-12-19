@@ -1,7 +1,7 @@
 from pytest import fixture
 from unittest.mock import call
 from queue import Queue
-from bfgg.utils.messages import OutgoingMessage
+from bfgg.utils.messages import OutgoingMessageGrouped
 
 from bfgg.controller.message_handlers.outgoing import OutgoingMessageHandler
 
@@ -13,7 +13,7 @@ class TestOutgoingMessageHandler:
         mocker.patch('bfgg.controller.message_handlers.outgoing.threading')
         zmq_mock = mocker.patch('bfgg.controller.message_handlers.outgoing.zmq')
         state_mock = mocker.patch('bfgg.controller.message_handlers.outgoing.State')
-        type(state_mock).connected_agents = mocker.PropertyMock(return_value=[b'A', b'B'])
+        state_mock.configure_mock(**{'connected_agents_by_group.return_value': [b'A', b'B']})
         outgoing_queue = Queue()
 
         yield zmq_mock, state_mock, outgoing_queue
@@ -22,7 +22,7 @@ class TestOutgoingMessageHandler:
         zmq_mock, state_mock, outgoing_queue = mocks
 
         message_handler = OutgoingMessageHandler(zmq_mock, 'port', state_mock, outgoing_queue)
-        outgoing_queue.put(OutgoingMessage(b'TYPE', b'DETAILS'))
+        outgoing_queue.put(OutgoingMessageGrouped(b'TYPE', b'DETAILS', b"GROUP"))
         message_handler._message_handler_loop()
 
         assert zmq_mock.socket.return_value.send_multipart.call_count == 2

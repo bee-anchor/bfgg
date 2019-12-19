@@ -22,10 +22,12 @@ class MetricsHandler:
         self.response_time_count = Counter('gatling_response_times', "Total response time for all requests",
                                            labelnames=['request_name'])
 
-    def handle_log(self, identity: bytes, log: bytes):
+    def handle_log(self, identity: bytes, log: bytes, group: bytes):
         logging.debug("Received log message")
         log = log.decode('utf-8')
-        with open(os.path.join(self.results_folder, ip_to_log_filename(identity.decode('utf-8'))), 'a') as f:
+        with open(os.path.join(self.results_folder,
+                               group.decode('utf-8'),
+                               ip_to_log_filename(identity.decode('utf-8'))), 'a') as f:
             f.write(log)
         for line in log.split('\n'):
             self._create_metrics(line)

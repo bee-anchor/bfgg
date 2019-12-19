@@ -3,10 +3,10 @@ from marshmallow import ValidationError, EXCLUDE
 from dotenv import load_dotenv
 from flask import Blueprint, request, jsonify
 import json
-from bfgg.utils.messages import OutgoingMessage, CLONE, START_TEST, STOP_TEST
+from bfgg.utils.messages import OutgoingMessageGrouped, CLONE, START_TEST, STOP_TEST, GROUP, OutgoingMessageTargeted
 from bfgg.controller.model import STATE
-from bfgg.controller.api.api_schemas import StartSchema, CloneSchema
-from bfgg.utils.helpers import create_or_empty_folder
+from bfgg.controller.api.api_schemas import StartSchema, CloneSchema, GroupSchema, StopSchema, ResultsSchema
+from bfgg.utils.helpers import create_or_empty_results_folder
 from bfgg.controller import OUTGOING_QUEUE
 from bfgg.controller.actors.report_handler import ReportHandler
 
@@ -29,7 +29,8 @@ def clone():
     except ValidationError as err:
         return jsonify(err.messages), 400
     repo = result['repo']
-    OUTGOING_QUEUE.put(OutgoingMessage(CLONE, repo.encode('utf-8')))
+    grp = result['group']
+    OUTGOING_QUEUE.put(OutgoingMessageGrouped(CLONE, repo.encode('utf-8'), group=grp.encode('utf-8')))
     return {
         "clone": "requested"
     }
@@ -44,10 +45,11 @@ def start():
     project = result['project']
     test = result['testClass']
     javaOpts = result.get('javaOpts', '')
+    grp = result['group']
     task = f"{project},{test},{javaOpts}".encode('utf-8')
     # TODO - if test already running, return error
-    OUTGOING_QUEUE.put(OutgoingMessage(START_TEST, task))
-    create_or_empty_folder(results_folder)
+    OUTGOING_QUEUE.put(OutgoingMessageGrouped(START_TEST, task, group=grp.encode('utf-8')))
+    create_or_empty_results_folder(results_folder, grp)
     return {
         "test": "requested"
     }
@@ -55,7 +57,12 @@ def start():
 
 @bp.route('/stop', methods=['POST'])
 def stop():
-    OUTGOING_QUEUE.put(OutgoingMessage(STOP_TEST, b"STOP"))
+    try:
+        result = StopSchema().load(request.get_json(force=True), unknown=EXCLUDE)
+    except ValidationError as err:
+        return jsonify(err.messages), bad_request
+    grp = result['group']
+    OUTGOING_QUEUE.put(OutgoingMessageGrouped(STOP_TEST, b"STOP", group=grp.encode('utf-8')))
     return {
         "testStop": "requested"
     }
@@ -67,10 +74,30 @@ def status():
     return json.dumps(current_state)
 
 
-@bp.route('/results', methods=['GET'])
+@bp.route('/results', methods=['POST'])
 def results():
-    getter = ReportHandler(results_folder, gatling_location, s3_bucket, s3_region)
+    try:
+        result = ResultsSchema().load(request.get_json(force=True), unknown=EXCLUDE)
+    except ValidationError as err:
+        return jsonify(err.messages), bad_request
+    grp = result['group']
+    getter = ReportHandler(results_folder, gatling_location, s3_bucket, s3_region, group=grp)
     url = getter.run()
     return {
         "Results": url
+    }
+
+
+@bp.route('/group', methods=['POST'])
+def group():
+    try:
+        result = GroupSchema().load(request.get_json(force=True), unknown=EXCLUDE)
+    except ValidationError as err:
+        return jsonify(err.messages), 400
+    new_group = result['group']
+    agents = result['agents']
+    OUTGOING_QUEUE.put(OutgoingMessageTargeted(GROUP, new_group.encode('utf-8'),
+                                               [agent.encode('utf-8') for agent in agents]))
+    return {
+        "grouping": "requested"
     }
