@@ -61,15 +61,22 @@ class State:
             if agent not in self._current_agents:
                 logging.warning(f"Tried to update status to {status.name} for unknown agent {agent}")
             else:
-                self._current_agents[agent].state.status = status
+                agent_state = self._current_agents[agent].state
+                self._current_agents[agent].update(StateData(status, agent_state.cloned_repos,
+                                                             agent_state.test_running, agent_state.extra_info,
+                                                             agent_state.group))
 
     def current_agents_state(self) -> Dict[bytes, StateData]:
         with self.lock:
             return {i: a.state for (i, a) in self._current_agents.items()}
 
     def current_agents_state_by_group(self, group: str) -> Dict[bytes, StateData]:
-        with self.lock:
-            return {i: a.state for (i, a) in self._current_agents.items() if a.state.group == group}
+        current_state = self.current_agents_state()
+        filtered_state = {}
+        for i, s in current_state.items():
+            if s.group == group:
+                filtered_state[i] = s
+        return filtered_state
 
     def current_agents_state_dict(self) -> Dict[str, dict]:
         with self.lock:
@@ -82,14 +89,14 @@ class State:
     def all_agents_finished(self):
         agents = self.current_agents_state()
         statuses = set([i.status for i in agents.values()])
-        if len(statuses) == 1 and AgentStatus.TEST_FINISHED in statuses:
+        if statuses == {AgentStatus.TEST_FINISHED}:
             return True
         return False
 
     def all_agents_finished_in_group(self, group):
         agents = self.current_agents_state_by_group(group)
         statuses = set([i.status for i in agents.values()])
-        if len(statuses) == 1 and AgentStatus.TEST_FINISHED in statuses:
+        if statuses == {AgentStatus.TEST_FINISHED}:
             return True
         return False
 

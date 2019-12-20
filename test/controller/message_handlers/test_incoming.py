@@ -67,7 +67,7 @@ def test_controller_message_handler_loop_start(mocker):
                                              gatling_location, s3_bucket, s3_region)
     message_handler._message_handler_loop()
 
-    create_or_empty_folder_mock.assert_called_once_with(results_folder, b'group')
+    create_or_empty_folder_mock.assert_called_once_with(results_folder, 'group')
 
 
 def test_controller_message_handler_loop_finished_all_agents(mocker):
@@ -80,9 +80,12 @@ def test_controller_message_handler_loop_finished_all_agents(mocker):
                                              gatling_location, s3_bucket, s3_region)
     message_handler._message_handler_loop()
 
-    logging_mock.info.assert_called_once_with('Identity finished test')
+    logging_mock.info.assert_has_calls([
+        mocker.call('Identity finished test'),
+        mocker.call('Generating report for group group')
+    ])
     state_mock.update_agent_status.assert_called_once_with(b'Identity', AgentStatus.TEST_FINISHED)
-    report_handler_mock.assert_called_once_with(results_folder, gatling_location, s3_bucket, s3_region, b'group')
+    report_handler_mock.assert_called_once_with(results_folder, gatling_location, s3_bucket, s3_region, 'group')
     report_handler_mock.return_value.run.assert_called_once()
 
 

@@ -4,7 +4,7 @@ import logging.config
 from bfgg.utils.messages import CLONE, START_TEST, STOP_TEST, GROUP
 from bfgg.agent.actors.gatling_runner import GatlingRunner
 from bfgg.agent.actors.git_actions import clone_repo
-from bfgg.agent.model import IDENTITY, handle_state_change
+from bfgg.agent.model import IDENTITY, handle_state_change, ensure_results_folder
 
 
 class IncomingMessageHandler(threading.Thread):
@@ -25,6 +25,7 @@ class IncomingMessageHandler(threading.Thread):
 
     def run(self):
         logging.info("IncomingMessageHandler thread started")
+        ensure_results_folder()
         while True:
             try:
                 self._message_handler_loop()

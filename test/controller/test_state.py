@@ -45,6 +45,26 @@ class TestState:
         }
         yield state
 
+    @fixture()
+    def group_not_finished_state(self):
+        state: State = State(threading.Lock())
+        state._current_agents = {
+            b'A': Agent(StateData(AgentStatus.TEST_FINISHED, set(), "", "", "group1"), 123),
+            b'B': Agent(StateData(AgentStatus.TEST_RUNNING, set(), "", "", "group1"), 123),
+            b'C': Agent(StateData(AgentStatus.TEST_FINISHED, set(), "", "", "group2"), 123),
+        }
+        yield state
+
+    @fixture()
+    def group_finished_state(self):
+        state: State = State(threading.Lock())
+        state._current_agents = {
+            b'A': Agent(StateData(AgentStatus.TEST_FINISHED, set(), "", "", "group1"), 123),
+            b'B': Agent(StateData(AgentStatus.TEST_FINISHED, set(), "", "", "group1"), 123),
+            b'C': Agent(StateData(AgentStatus.TEST_RUNNING, set(), "", "", "group2"), 123),
+        }
+        yield state
+
     def test_connected_agents(self, state):
         assert set(state.connected_agents) == {b'A', b'B', b'C', b'D'}
 
@@ -76,6 +96,7 @@ class TestState:
         }
 
     def test_current_agent_state_by_group(self, state):
+        print(state.current_agents_state_by_group("group1"))
         assert state.current_agents_state_by_group("group1") == {
             b'A': StateData(AgentStatus.AVAILABLE, set(), "", "", "group1"),
             b'C': StateData(AgentStatus.AVAILABLE, set(), "", "", "group1")
@@ -100,6 +121,12 @@ class TestState:
 
     def test_all_agents_finished_true(self, finished_state):
         assert finished_state.all_agents_finished() is True
+
+    def test_all_agents_finished_in_group_false(self, group_not_finished_state):
+        assert group_not_finished_state.all_agents_finished_in_group('group1') is False
+
+    def test_all_agents_finished_in_group_true(self, group_finished_state):
+        assert group_finished_state.all_agents_finished_in_group('group1') is True
 
     def test_handle_dead_agents(self, minimal_state, mocker):
         log_mock = mocker.patch("bfgg.controller.state.logging")

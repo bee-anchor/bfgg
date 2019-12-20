@@ -46,10 +46,12 @@ class IncomingMessageHandler(threading.Thread):
             self.state.remove_agent(identity)
         elif mess_type == START_TEST:
             logging.info(f"{identity.decode('utf-8')} started test")
-            create_or_empty_results_folder(self.results_folder, group)
+            create_or_empty_results_folder(self.results_folder, group.decode('utf-8'))
         elif mess_type == FINISHED_TEST:
             logging.info(f"{identity.decode('utf-8')} finished test")
+            str_group = group.decode('utf-8')
             self.state.update_agent_status(identity, AgentStatus.TEST_FINISHED)
-            if self.state.all_agents_finished_in_group(group):
+            if self.state.all_agents_finished_in_group(str_group):
+                logging.info(f"Generating report for group {str_group}")
                 ReportHandler(self.results_folder, self.gatling_location, self.s3_bucket,
-                              self.s3_region, group).run()
+                              self.s3_region, str_group).run()

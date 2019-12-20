@@ -26,7 +26,7 @@ export default function MainBody() {
 
   const handleAgents = (response) => {
       setAgents(response);
-      setGroups(Object.entries(agents).map(([identity, state]) => state.group).sort());
+      setGroups([...new Set(Object.entries(agents).map(([identity, state]) => state.group))].sort());
   };
 
   const getAgentState = () => {

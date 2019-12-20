@@ -40,7 +40,6 @@ def ensure_results_folder():
 OUTGOING_QUEUE = Queue()
 STATE_QUEUE = Queue()
 
-ensure_results_folder()
 IDENTITY = os.getenv('AGENT_IDENTITY', default=get_identity(CONTROLLER_HOST))
 STATE = State(threading.Lock())
 handle_state_change = handle_state_change_partial(STATE_QUEUE, OUTGOING_QUEUE)
