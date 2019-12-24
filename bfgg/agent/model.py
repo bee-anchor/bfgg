@@ -1,12 +1,13 @@
 import socket
 import threading
 import os
-import logging.config
 from queue import Queue
 from dotenv import load_dotenv
 from bfgg.agent.state import State
 from bfgg.agent.state_utils import handle_state_change_partial
+from bfgg.utils.logging import logger
 
+logger = logger
 
 load_dotenv()
 
@@ -24,8 +25,8 @@ def get_identity(controller_host):
     try:
         s.connect((controller_host, 80))
     except Exception as e:
-        logging.critical("Failed to get agent ip")
-        logging.critical(e)
+        logger.critical("Failed to get agent ip")
+        logger.critical(e)
         return None
     ip = s.getsockname()[0]
     s.close()

@@ -1,20 +1,22 @@
-import logging.config
 import subprocess
 import os
 from bfgg.agent.model import handle_state_change
 from bfgg.utils.agentstatus import AgentStatus
+from bfgg.utils.logging import logger
+
+logger = logger
 
 
 def clone_repo(project: str, tests_location: str):
     project_name = project[project.find('/') + 1: project.find('.git')]
-    logging.info(f"Getting {project}")
+    logger.info(f"Getting {project}")
     try:
         resp = subprocess.Popen(['git', 'clone', project, '--progress'],
                                 cwd=tests_location,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE)
     except FileNotFoundError:
-        logging.error("Directory for cloning doesn't exist")
+        logger.error("Directory for cloning doesn't exist")
         handle_state_change(
             status=AgentStatus.ERROR,
             extra_info="Exception found when cloning. Please make sure the directory for cloning repositories exists.")
@@ -25,7 +27,7 @@ def clone_repo(project: str, tests_location: str):
     stderror = stderror.decode('utf-8')
     if "Receiving objects: 100%" in stderror:
         handle_state_change(status=AgentStatus.AVAILABLE, cloned_repo={project_name})
-        logging.info(f"Cloned {project_name}")
+        logger.info(f"Cloned {project_name}")
     elif "already exists and is not an empty directory" in stderror:
         command = (f"git -C {os.path.join(tests_location, project_name)} fetch && "
                    f"git -C {os.path.join(tests_location, project_name)} reset origin/master --hard")
@@ -36,9 +38,9 @@ def clone_repo(project: str, tests_location: str):
                                 stderr=subprocess.STDOUT)
         stdout, stderror = resp.communicate()
         stdout = stdout.decode('utf-8')
-        logging.info(project_name)
+        logger.info(project_name)
         handle_state_change(status=AgentStatus.AVAILABLE, cloned_repo={project_name})
-        logging.info(f"Got latest {project_name}")
+        logger.info(f"Got latest {project_name}")
     elif "fatal: Could not read from remote repository" in stderror:
         handle_state_change(status=AgentStatus.ERROR,
                             extra_info="Could not read from remote repository. Check agent for further details.")
@@ -48,4 +50,4 @@ def clone_repo(project: str, tests_location: str):
 
 def _log_if_present(std):
     if std:
-        logging.debug(std)
+        logger.debug(std)

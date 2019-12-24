@@ -1,16 +1,16 @@
 import threading
 import zmq
 import atexit
-import logging.config
 from bfgg.agent.model import OUTGOING_QUEUE, STATE
-from bfgg.utils.messages import BYE
-from bfgg.utils.messages import OutgoingMessage
+from bfgg.utils.messages import OutgoingMessage, BYE
+from bfgg.utils.logging import logger
 
 
 class OutgoingMessageHandler(threading.Thread):
 
     def __init__(self, context: zmq.Context, controller_host: str, port: str, identity: bytes):
         threading.Thread.__init__(self)
+        self.logger = logger
         self.context = context
         self.controller_host = controller_host
         self.port = port
@@ -20,7 +20,7 @@ class OutgoingMessageHandler(threading.Thread):
         atexit.register(self.exit_gracefully)
 
     def run(self):
-        logging.info("OutgoingMessageHandler thread started")
+        self.logger.info("OutgoingMessageHandler thread started")
         while True:
             self._message_handler_loop()
 
@@ -30,4 +30,4 @@ class OutgoingMessageHandler(threading.Thread):
 
     def exit_gracefully(self):
         self.handler.send_multipart([self.identity, STATE.group.encode('utf-8'), BYE, b"goodbye"])
-        logging.info("Agent terminated")
+        self.logger.info("Agent terminated")

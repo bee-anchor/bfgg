@@ -1,11 +1,12 @@
-import logging.config
 import threading
 from typing import Dict, List
 from dataclasses import dataclass
 from datetime import datetime
 from bfgg.utils.agentstatus import AgentStatus
 from bfgg.agent.state import StateData
+from bfgg.utils.logging import logger
 
+logger = logger
 
 @dataclass
 class Agent:
@@ -15,7 +16,7 @@ class Agent:
     def update(self, new_state: StateData):
         self.state = new_state
         self.last_heard_from = int(datetime.now().timestamp())
-        logging.debug(f"Updated agent state to {self.state} {self.last_heard_from}")
+        logger.debug(f"Updated agent state to {self.state} {self.last_heard_from}")
 
     def to_dict(self) -> dict:
         return {
@@ -46,20 +47,20 @@ class State:
         with self.lock:
             if agent in self._current_agents:
                 self._current_agents.pop(agent)
-                logging.info(f"{agent} disconnected")
+                logger.info(f"{agent} disconnected")
 
     def update_agent_state(self, agent: bytes, state: StateData):
         with self.lock:
             if agent not in self._current_agents:
                 self._current_agents[agent] = Agent(state, int(datetime.now().timestamp()))
-                logging.info(f"{agent} connected, state: {state}")
+                logger.info(f"{agent} connected, state: {state}")
             else:
                 self._current_agents[agent].update(state)
 
     def update_agent_status(self, agent: bytes, status: AgentStatus):
         with self.lock:
             if agent not in self._current_agents:
-                logging.warning(f"Tried to update status to {status.name} for unknown agent {agent}")
+                logger.warning(f"Tried to update status to {status.name} for unknown agent {agent}")
             else:
                 agent_state = self._current_agents[agent].state
                 self._current_agents[agent].update(StateData(status, agent_state.cloned_repos,
@@ -108,5 +109,5 @@ class State:
                 # not heard from agent for over 20 seconds, something is wrong....
                 if current_time - info.last_heard_from > 20:
                     self._current_agents.pop(agent)
-                    logging.warning(f"Agent {agent.decode('utf-8')} has not been heard "
+                    logger.warning(f"Agent {agent.decode('utf-8')} has not been heard "
                                     f"from for a while, removing from connected list")

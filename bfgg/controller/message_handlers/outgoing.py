@@ -2,16 +2,17 @@ from typing import Union
 import threading
 import zmq
 import time
-import logging.config
 from queue import Empty
 from bfgg.utils.messages import OutgoingMessageGrouped, OutgoingMessageTargeted
 from bfgg.controller.model import State
+from bfgg.utils.logging import logger
 
 
 class OutgoingMessageHandler(threading.Thread):
 
     def __init__(self, context: zmq.Context, port: str, state: State, outgoing_queue):
         threading.Thread.__init__(self)
+        self.logger = logger
         self.context = context
         self.port = port
         self.state = state
@@ -25,12 +26,12 @@ class OutgoingMessageHandler(threading.Thread):
         self.handler.bind(f"tcp://*:{self.port}")
 
     def run(self):
-        logging.info("OutgoingMessageHandler thread started")
+        self.logger.info("OutgoingMessageHandler thread started")
         while True:
             try:
                 self._message_handler_loop()
             except Exception as e:
-                logging.error(e)
+                self.logger.error(e)
                 time.sleep(1)
                 continue
 
@@ -46,9 +47,9 @@ class OutgoingMessageHandler(threading.Thread):
     def send_message(self, message: Union[OutgoingMessageGrouped, OutgoingMessageTargeted]):
         if type(message) is OutgoingMessageGrouped:
             for agent in self.state.connected_agents_by_group(message.group.decode('utf-8')):
-                logging.debug([agent, self.identity, message.type, message.details])
+                self.logger.debug([agent, self.identity, message.type, message.details])
                 self.handler.send_multipart([agent, self.identity, message.type, message.details])
         elif type(message) is OutgoingMessageTargeted:
             for agent in message.targets:
-                logging.debug([agent, self.identity, message.type, message.details])
+                self.logger.debug([agent, self.identity, message.type, message.details])
                 self.handler.send_multipart([agent, self.identity, message.type, message.details])
