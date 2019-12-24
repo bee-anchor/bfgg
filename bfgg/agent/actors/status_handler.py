@@ -1,21 +1,22 @@
 import threading
 from queue import Queue
-import logging.config
 from queue import Empty
 import pickle
 from bfgg.agent.state import StateData, State
 from bfgg.utils.messages import OutgoingMessage, STATUS
+from bfgg.utils.logging import logger
 
 
 class StatusHandler(threading.Thread):
     def __init__(self, state: State, state_queue: Queue, outgoing_queue: Queue):
         threading.Thread.__init__(self)
+        self.logger = logger
         self.state = state
         self.state_queue = state_queue
         self.outgoing_queue = outgoing_queue
 
     def run(self):
-        logging.info("StatusHandler thread started")
+        self.logger.info("StatusHandler thread started")
         while True:
             self._handle_state_change()
 

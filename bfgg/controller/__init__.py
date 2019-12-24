@@ -1,5 +1,3 @@
-import os
-import logging.config
 from bfgg.controller.message_handlers.incoming import IncomingMessageHandler
 from bfgg.controller.message_handlers.outgoing import OutgoingMessageHandler
 from bfgg.controller.model import (STATE, CONTEXT, OUTGOING_QUEUE, INCOMING_PORT, OUTGOING_PORT, RESULTS_FOLDER,
@@ -10,18 +8,6 @@ from flask_cors import CORS
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from prometheus_client import make_wsgi_app
 from bfgg.controller.api import api
-
-DEFAULT_LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'loggers': {
-        '': {
-            'level': os.getenv('LOG_LEVEL'),
-        }
-    }
-}
-
-logging.config.dictConfig(DEFAULT_LOGGING)
 
 
 def create_app():

@@ -1,6 +1,6 @@
 import threading
 import zmq
-import logging.config
+from bfgg.utils.logging import logger
 from bfgg.utils.messages import CLONE, START_TEST, STOP_TEST, GROUP
 from bfgg.agent.actors.gatling_runner import GatlingRunner
 from bfgg.agent.actors.git_actions import clone_repo
@@ -12,6 +12,7 @@ class IncomingMessageHandler(threading.Thread):
     def __init__(self, context: zmq.Context, controller_host: str, port: str,
                  tests_location: str, results_folder: str, gatling_location: str):
         threading.Thread.__init__(self)
+        self.logger = logger
         self.context = context
         self.controller_host = controller_host
         self.port = port
@@ -24,19 +25,19 @@ class IncomingMessageHandler(threading.Thread):
         self.handler.connect(f"tcp://{self.controller_host}:{self.port}")
 
     def run(self):
-        logging.info("IncomingMessageHandler thread started")
+        self.logger.info("IncomingMessageHandler thread started")
         ensure_results_folder()
         while True:
             try:
                 self._message_handler_loop()
             except Exception as e:
-                logging.error(e)
+                self.logger.error(e)
                 continue
 
     def _message_handler_loop(self):
-        logging.debug("waiting for message")
+        self.logger.debug("waiting for message")
         [identity, type, message] = self.handler.recv_multipart()
-        logging.debug([identity, type, message])
+        self.logger.debug([identity, type, message])
         if type == CLONE:
             clone_repo(message.decode("utf-8"), self.tests_location)
         elif type == START_TEST:
@@ -50,4 +51,4 @@ class IncomingMessageHandler(threading.Thread):
         elif type == GROUP:
             handle_state_change(group=message.decode('utf-8'))
         else:
-            logging.warning(f'Received unhandled message, it has been dropped: {identity}, {type}, {message}')
+            self.logger.warning(f'Received unhandled message, it has been dropped: {identity}, {type}, {message}')

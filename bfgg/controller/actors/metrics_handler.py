@@ -1,12 +1,13 @@
 import os
-import logging.config
 from prometheus_client import Histogram, Counter
 from bfgg.utils.helpers import ip_to_log_filename
+from bfgg.utils.logging import logger
 
 
 class MetricsHandler:
 
     def __init__(self, results_folder: str):
+        self.logger = logger
         self.results_folder = results_folder
         self.total_users_count = Counter('gatling_total_users', "Total number of users", labelnames=['population'])
         self.total_successes_count = Counter('gatling_success_responses', "Total number of 'OK' responses",
@@ -23,14 +24,20 @@ class MetricsHandler:
                                            labelnames=['request_name'])
 
     def handle_log(self, identity: bytes, log: bytes, group: bytes):
-        logging.debug("Received log message")
+        self.logger.debug("Received log message")
         log = log.decode('utf-8')
-        with open(os.path.join(self.results_folder,
-                               group.decode('utf-8'),
-                               ip_to_log_filename(identity.decode('utf-8'))), 'a') as f:
-            f.write(log)
-        for line in log.split('\n'):
-            self._create_metrics(line)
+        try:
+            with open(os.path.join(self.results_folder,
+                                   group.decode('utf-8'),
+                                   ip_to_log_filename(identity.decode('utf-8'))), 'a') as f:
+                f.write(log)
+        except Exception as e:
+            self.logger.error(e)
+        try:
+            for line in log.split('\n'):
+                self._create_metrics(line)
+        except Exception as e:
+            self.logger.error(e)
 
     def _create_metrics(self, log_line):
         try:
@@ -50,5 +57,5 @@ class MetricsHandler:
             elif log_line.startswith('ERROR'):
                 self.total_errors_count.inc()
         except Exception as e:
-            logging.error(e)
-            logging.error(log_line)
+            self.logger.error(e)
+            self.logger.error(log_line)

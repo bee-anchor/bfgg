@@ -1,31 +1,14 @@
-import logging.config
 import zmq
-import os
 from bfgg.agent.message_handlers.incoming import IncomingMessageHandler
 from bfgg.agent.message_handlers.outgoing import OutgoingMessageHandler
 from bfgg.agent.actors.status_handler import StatusHandler
 from bfgg.agent.model import (IDENTITY, CONTROLLER_HOST, AGENT_MESSAGING_PORT, CONTROLLER_MESSAGING_PORT,
                               TESTS_LOCATION, RESULTS_FOLDER, GATLING_LOCATION, STATE, STATE_QUEUE, OUTGOING_QUEUE)
 
-DEFAULT_LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'loggers': {
-        '': {
-            'level': os.getenv('LOG_LEVEL'),
-        }
-    }
-}
-
-logging.config.dictConfig(DEFAULT_LOGGING)
-
 
 def create_agent(identity=IDENTITY, controller_host=CONTROLLER_HOST, agent_messaging_port=AGENT_MESSAGING_PORT,
                  controller_messaging_port=CONTROLLER_MESSAGING_PORT, tests_location=TESTS_LOCATION,
                  results_folder=RESULTS_FOLDER, gatling_location=GATLING_LOCATION):
-    # Incoming Message Handler
-    # Outgoing Message Handler
-    # Status Message Sender
 
     if identity is None:
         return
