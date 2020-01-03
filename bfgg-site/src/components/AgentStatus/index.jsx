@@ -2,7 +2,6 @@ import React, {useState} from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import { lighten, makeStyles } from '@material-ui/core/styles';
-import Box from '@material-ui/core/Box'
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -44,7 +43,7 @@ function EnhancedTableHead(props) {
                 indeterminate={numSelected > 0 && numSelected < rowCount}
                 checked={numSelected === rowCount}
                 onChange={onSelectAllClick}
-                inputProps={{ 'aria-label': 'select all desserts' }}
+                inputProps={{ 'aria-label': 'select all agents' }}
             />
           </TableCell>
           {headCells.map(headCell => (
@@ -261,7 +260,7 @@ export default function EnhancedTable(props) {
                   orderBy={orderBy}
                   onSelectAllClick={handleSelectAllClick}
                   onRequestSort={handleRequestSort}
-                  rowCount={agents.length}
+                  rowCount={Object.keys(agents).length}
               />
               <TableBody>
                 {Object.entries(agents).map(([identity, state]) => {
