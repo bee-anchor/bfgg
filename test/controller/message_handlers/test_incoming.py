@@ -71,10 +71,14 @@ def test_controller_message_handler_loop_start(mocker):
 
 
 def test_controller_message_handler_loop_finished_all_agents(mocker):
-    state_mock, zmq_mock, _ = setup_mocks(mocker, (b'Identity', b'group', FINISHED_TEST, b'Finish'))
-    logging_mock = mocker.patch('bfgg.controller.message_handlers.incoming.logging')
+    state_mock, zmq_mock, _ = setup_mocks(mocker, (b'Identity', b'group', FINISHED_TEST, b'1234'))
     state_mock.all_agents_finished_in_group.return_value = True
+    logging_mock = mocker.patch('bfgg.controller.message_handlers.incoming.logger')
     report_handler_mock = mocker.patch('bfgg.controller.message_handlers.incoming.ReportHandler')
+    report_handler_mock.return_value.run.return_value = "results.url"
+    dynamodb_mock = mocker.patch('bfgg.controller.message_handlers.incoming.DYNAMO_DB')
+    datetime_mock = mocker.patch('bfgg.controller.message_handlers.incoming.datetime')
+    datetime_mock.utcnow.return_value = "datetime.utcnow"
 
     message_handler = IncomingMessageHandler(zmq_mock, port, results_folder, state_mock,
                                              gatling_location, s3_bucket, s3_region)
@@ -87,12 +91,13 @@ def test_controller_message_handler_loop_finished_all_agents(mocker):
     state_mock.update_agent_status.assert_called_once_with(b'Identity', AgentStatus.TEST_FINISHED)
     report_handler_mock.assert_called_once_with(results_folder, gatling_location, s3_bucket, s3_region, 'group')
     report_handler_mock.return_value.run.assert_called_once()
+    dynamodb_mock.update_test_ended.assert_called_with("1234", "datetime.utcnow", "results.url")
 
 
 def test_controller_message_handler_loop_finished_not_all_agents(mocker):
     state_mock, zmq_mock, _ = setup_mocks(mocker, (b'Identity', b'group', FINISHED_TEST, b'Finish'))
     state_mock.all_agents_finished_in_group.return_value = False
-    logging_mock = mocker.patch('bfgg.controller.message_handlers.incoming.logging')
+    logging_mock = mocker.patch('bfgg.controller.message_handlers.incoming.logger')
     report_handler_mock = mocker.patch('bfgg.controller.message_handlers.incoming.ReportHandler')
 
     message_handler = IncomingMessageHandler(zmq_mock, port, results_folder, state_mock,

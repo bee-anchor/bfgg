@@ -16,7 +16,8 @@ class TestReportHandler:
         subprocess_mock = mocker.patch('bfgg.controller.actors.report_handler.subprocess', **{
             'Popen.return_value.communicate.return_value': (b'Stdout', b'Stderr')
         })
-        logging_mock = mocker.patch('bfgg.controller.actors.report_handler.logging')
+        logging_mock = mocker.MagicMock()
+        self.report_handler.logger = logging_mock
 
         self.report_handler._generate_report()
         assert [f'{self.gatling_folder}/bin/gatling.sh', '-ro',
@@ -39,7 +40,7 @@ class TestReportHandler:
         })
         mocker.patch('bfgg.controller.actors.report_handler.shutil')
         boto3_mock = mocker.patch('bfgg.controller.actors.report_handler.boto3').resource.return_value.Object
-        logging_mock = mocker.patch('bfgg.controller.actors.report_handler.logging')
+        logging_mock = mocker.patch('bfgg.controller.actors.report_handler.logger')
 
         assert self.report_handler._upload_results() == f'https://{self.bucket}.s3.amazonaws.com/NOW/index.html'
         logging_mock.info.asser_called_with(f'https://{self.bucket}.s3.amazonaws.com/NOW/index.html')

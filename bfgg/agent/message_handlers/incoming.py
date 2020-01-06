@@ -41,9 +41,9 @@ class IncomingMessageHandler(threading.Thread):
         if type == CLONE:
             clone_repo(message.decode("utf-8"), self.tests_location)
         elif type == START_TEST:
-            project, test, java_opts = message.decode('utf-8').split(",")
+            test_id, project, test, java_opts = message.decode('utf-8').split(",")
             self.test_runner = GatlingRunner(
-                self.gatling_location, self.tests_location, self.results_folder, project, test, java_opts
+                self.gatling_location, self.tests_location, self.results_folder, test_id, project, test, java_opts
             )
             self.test_runner.start()
         elif type == STOP_TEST and self.test_runner is not None:

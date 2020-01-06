@@ -1,5 +1,7 @@
 import threading
 import zmq
+from datetime import datetime
+from bfgg.controller.model import State, DYNAMO_DB
 import pickle
 from bfgg.utils.messages import LOG, STATUS, BYE, START_TEST, FINISHED_TEST
 from bfgg.utils.logging import logger
@@ -49,9 +51,12 @@ class IncomingMessageHandler(threading.Thread):
             create_or_empty_results_folder(self.results_folder, group.decode('utf-8'))
         elif mess_type == FINISHED_TEST:
             self.logger.info(f"{identity.decode('utf-8')} finished test")
+            end_time = datetime.utcnow()
             str_group = group.decode('utf-8')
+            test_id = payload.decode('utf-8')
             self.state.update_agent_status(identity, AgentStatus.TEST_FINISHED)
             if self.state.all_agents_finished_in_group(str_group):
-                ReportHandler(self.results_folder, self.gatling_location, self.s3_bucket,
-                              self.s3_region, str_group).run()
                 self.logger.info(f"Generating report for group {str_group}")
+                results_url = ReportHandler(self.results_folder, self.gatling_location, self.s3_bucket,
+                                            self.s3_region, str_group).run()
+                DYNAMO_DB.update_test_ended(test_id, end_time, results_url)

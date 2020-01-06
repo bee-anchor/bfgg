@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 import { CssBaseline } from '@material-ui/core';
 import { amber, lightGreen } from '@material-ui/core/colors';
@@ -13,11 +13,13 @@ const theme = createMuiTheme({
 });
 
 export default function App() {
+  const [tabValue, setTabValue] = useState(0);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline>
-        <SideBar />
-        <MainBody />
+        <SideBar tabValue={tabValue} setTabValue={setTabValue} />
+        <MainBody tabValue={tabValue} />
       </CssBaseline>
     </ThemeProvider>
   );

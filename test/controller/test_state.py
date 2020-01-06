@@ -10,9 +10,9 @@ class TestAgent:
 
     def test_update(self):
         now = int(datetime.now().timestamp()) - 10
-        agent = Agent(StateData(AgentStatus.AVAILABLE, set(), "", "", "info"), now)
-        agent.update(StateData(AgentStatus.TEST_RUNNING, {'repo'}, "test", "", ""))
-        assert agent.state == StateData(AgentStatus.TEST_RUNNING, {'repo'}, "test", "", "")
+        agent = Agent(StateData(AgentStatus.AVAILABLE, set(), "", "", "", "info"), now)
+        agent.update(StateData(AgentStatus.TEST_RUNNING, {'repo'}, "test", "1234", "", ""))
+        assert agent.state == StateData(AgentStatus.TEST_RUNNING, {'repo'}, "test", "1234", "", "")
         assert agent.last_heard_from > now
 
 
@@ -22,10 +22,10 @@ class TestState:
     def state(self):
         state: State = State(threading.Lock())
         state._current_agents = {
-            b'A': Agent(StateData(AgentStatus.AVAILABLE, set(), "", "", "group1"), 123),
-            b'B': Agent(StateData(AgentStatus.AVAILABLE, set(), "", "", ""), 123),
-            b'C': Agent(StateData(AgentStatus.AVAILABLE, set(), "", "", "group1"), 123),
-            b'D': Agent(StateData(AgentStatus.AVAILABLE, set(), "", "", "group2"), 123),
+            b'A': Agent(StateData(AgentStatus.AVAILABLE, set(), "", "", "", "group1"), 123),
+            b'B': Agent(StateData(AgentStatus.AVAILABLE, set(), "", "", "", ""), 123),
+            b'C': Agent(StateData(AgentStatus.AVAILABLE, set(), "", "", "", "group1"), 123),
+            b'D': Agent(StateData(AgentStatus.AVAILABLE, set(), "", "", "", "group2"), 123),
         }
         yield state
 
@@ -33,7 +33,7 @@ class TestState:
     def minimal_state(self):
         state: State = State(threading.Lock())
         state._current_agents = {
-            b'A': Agent(StateData(AgentStatus.AVAILABLE, set(), "", "", "group1"), 123),
+            b'A': Agent(StateData(AgentStatus.AVAILABLE, set(), "", "", "", "group1"), 123),
         }
         yield state
 
@@ -41,7 +41,7 @@ class TestState:
     def finished_state(self):
         state: State = State(threading.Lock())
         state._current_agents = {
-            b'A': Agent(StateData(AgentStatus.TEST_FINISHED, set(), "", "", "group1"), 123),
+            b'A': Agent(StateData(AgentStatus.TEST_FINISHED, set(), "", "", "", "group1"), 123),
         }
         yield state
 
@@ -49,9 +49,9 @@ class TestState:
     def group_not_finished_state(self):
         state: State = State(threading.Lock())
         state._current_agents = {
-            b'A': Agent(StateData(AgentStatus.TEST_FINISHED, set(), "", "", "group1"), 123),
-            b'B': Agent(StateData(AgentStatus.TEST_RUNNING, set(), "", "", "group1"), 123),
-            b'C': Agent(StateData(AgentStatus.TEST_FINISHED, set(), "", "", "group2"), 123),
+            b'A': Agent(StateData(AgentStatus.TEST_FINISHED, set(), "", "", "", "group1"), 123),
+            b'B': Agent(StateData(AgentStatus.TEST_RUNNING, set(), "", "", "", "group1"), 123),
+            b'C': Agent(StateData(AgentStatus.TEST_FINISHED, set(), "", "", "", "group2"), 123),
         }
         yield state
 
@@ -59,9 +59,9 @@ class TestState:
     def group_finished_state(self):
         state: State = State(threading.Lock())
         state._current_agents = {
-            b'A': Agent(StateData(AgentStatus.TEST_FINISHED, set(), "", "", "group1"), 123),
-            b'B': Agent(StateData(AgentStatus.TEST_FINISHED, set(), "", "", "group1"), 123),
-            b'C': Agent(StateData(AgentStatus.TEST_RUNNING, set(), "", "", "group2"), 123),
+            b'A': Agent(StateData(AgentStatus.TEST_FINISHED, set(), "", "", "", "group1"), 123),
+            b'B': Agent(StateData(AgentStatus.TEST_FINISHED, set(), "", "", "", "group1"), 123),
+            b'C': Agent(StateData(AgentStatus.TEST_RUNNING, set(), "", "", "", "group2"), 123),
         }
         yield state
 
@@ -76,29 +76,29 @@ class TestState:
         assert minimal_state._current_agents == {}
 
     def test_update_agent_state_new_agent(self, minimal_state):
-        minimal_state.update_agent_state(b'B', StateData(AgentStatus.AVAILABLE, set(), "", "", "group2"))
+        minimal_state.update_agent_state(b'B', StateData(AgentStatus.AVAILABLE, set(), "", "", "", "group2"))
         assert minimal_state._current_agents == {
-            b'A': Agent(StateData(AgentStatus.AVAILABLE, set(), "", "", "group1"), 123),
-            b'B': Agent(StateData(AgentStatus.AVAILABLE, set(), "", "", "group2"), int(datetime.now().timestamp()))
+            b'A': Agent(StateData(AgentStatus.AVAILABLE, set(), "", "", "", "group1"), 123),
+            b'B': Agent(StateData(AgentStatus.AVAILABLE, set(), "", "", "", "group2"), int(datetime.now().timestamp()))
         }
 
     def test_update_agent_state_existing_agent(self, minimal_state):
-        minimal_state.update_agent_state(b'A', StateData(AgentStatus.TEST_RUNNING, set("repo"), "test", "", "group2"))
+        minimal_state.update_agent_state(b'A', StateData(AgentStatus.TEST_RUNNING, set("repo"), "test", "1234", "", "group2"))
         assert minimal_state._current_agents == {
-            b'A': Agent(StateData(AgentStatus.TEST_RUNNING, set("repo"), "test", "", "group2"),
+            b'A': Agent(StateData(AgentStatus.TEST_RUNNING, set("repo"), "test", "1234", "", "group2"),
                         int(datetime.now().timestamp())
                         )
         }
 
     def test_current_agents_state(self, minimal_state):
         assert minimal_state.current_agents_state() == {
-            b'A': StateData(AgentStatus.AVAILABLE, set(), "", "", "group1")
+            b'A': StateData(AgentStatus.AVAILABLE, set(), "", "", "", "group1")
         }
 
     def test_current_agent_state_by_group(self, state):
         assert state.current_agents_state_by_group("group1") == {
-            b'A': StateData(AgentStatus.AVAILABLE, set(), "", "", "group1"),
-            b'C': StateData(AgentStatus.AVAILABLE, set(), "", "", "group1")
+            b'A': StateData(AgentStatus.AVAILABLE, set(), "", "", "", "group1"),
+            b'C': StateData(AgentStatus.AVAILABLE, set(), "", "", "", "group1")
         }
 
     def test_current_agent_state_dict(self, minimal_state):
@@ -128,7 +128,7 @@ class TestState:
         assert group_finished_state.all_agents_finished_in_group('group1') is True
 
     def test_handle_dead_agents(self, minimal_state, mocker):
-        log_mock = mocker.patch("bfgg.controller.state.logging")
+        log_mock = mocker.patch("bfgg.controller.state.logger")
         minimal_state.handle_dead_agents()
         assert minimal_state._current_agents == {}
         log_mock.warning.assert_called_with("Agent A has not been heard from for a while, removing from connected list")

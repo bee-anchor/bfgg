@@ -14,7 +14,6 @@ const useStyles = makeStyles({
     height: '70%',
   },
   card: {
-    marginTop: '40px',
     paddingLeft: '1%',
     paddingRight: '1%',
     paddingBottom: '1%',

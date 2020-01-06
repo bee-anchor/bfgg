@@ -52,13 +52,21 @@ class TestApi:
     def test_start(self, mocks, mocker):
         outgoing_queue_mock = mocks
         create_folder_mock = mocker.patch('bfgg.controller.api.create_or_empty_results_folder')
+        dynamodb_mock = mocker.patch('bfgg.controller.api.DYNAMO_DB')
+        datetime_mock = mocker.patch('bfgg.controller.api.datetime')
+        uuid_mock = mocker.patch('bfgg.controller.api.uuid4')
+        uuid_mock.return_value = "1234"
+        datetime_mock.utcnow.return_value = "datetime_now"
+
         res = self.client().post('/start', content_type="'application/json'", data=json.dumps(self.start_data))
         assert res.status_code == 200
         create_folder_mock.assert_called_once()
-        expected_task = (f"{self.start_data['project']},"
+        expected_task = (f"1234,{self.start_data['project']},"
                          f"{self.start_data['testClass']},"
                          f"{self.start_data['javaOpts']}").encode('utf-8')
         outgoing_queue_mock.put.assert_called_with(OutgoingMessageGrouped(START_TEST, expected_task, b"ungrouped"))
+        dynamodb_mock.save_test_started.assert_called_with("1234", "datetime_now", self.start_data['project'],
+                                                           self.start_data['testClass'], self.start_data['javaOpts'])
 
     def test_stop_bad_request(self):
         res = self.client().post('/stop', content_type="'application/json'", data=json.dumps(self.bad_stop_data))
@@ -80,9 +88,9 @@ class TestApi:
             }
         })
         res = self.client().get('/status')
-        expected = b'{"a": {"status": "AVAILABLE", "cloned_repos": [], "test_running": "", "extra_info": ""}}'
+        expected = {"a": {"status": "AVAILABLE", "cloned_repos": [], "test_running": "", "extra_info": ""}}
         assert res.status_code == 200
-        assert res.data == expected
+        assert res.json == expected
 
     def test_results_bad_request(self):
         res = self.client().post('/results', content_type="'application/json'", data=json.dumps(self.bad_results_data))
