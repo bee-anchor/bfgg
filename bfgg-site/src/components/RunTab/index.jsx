@@ -13,12 +13,12 @@ const useStyles = makeStyles({
   },
 });
 
-export default function HomeTab(props) {
+export default function RunTab(props) {
   const classes = useStyles();
   const { tabValue, setSnackbarOpen, setSnackbar, selectedGroup } = props;
 
   return (
-      <TabPanel value={} index={0}>
+      <TabPanel value={tabValue} index={0}>
         <Box className={classes.main}>
             <CloneForm setSnackbarOpen={setSnackbarOpen} setSnackbar={setSnackbar} selectedGroup={selectedGroup}/>
             <StartForm setSnackbarOpen={setSnackbarOpen} setSnackbar={setSnackbar} selectedGroup={selectedGroup}/>
@@ -28,7 +28,7 @@ export default function HomeTab(props) {
   );
 }
 
-HomeTab.propTypes = {
+RunTab.propTypes = {
     tabValue: PropTypes.number.isRequired,
     setSnackbarOpen: PropTypes.func.isRequired,
     setSnackbar: PropTypes.func.isRequired,

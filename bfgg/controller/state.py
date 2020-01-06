@@ -6,7 +6,6 @@ from bfgg.utils.agentstatus import AgentStatus
 from bfgg.agent.state import StateData
 from bfgg.utils.logging import logger
 
-logger = logger
 
 @dataclass
 class Agent:
@@ -64,8 +63,8 @@ class State:
             else:
                 agent_state = self._current_agents[agent].state
                 self._current_agents[agent].update(StateData(status, agent_state.cloned_repos,
-                                                             agent_state.test_running, agent_state.extra_info,
-                                                             agent_state.group))
+                                                             agent_state.test_running, agent_state.test_id,
+                                                             agent_state.extra_info, agent_state.group))
 
     def current_agents_state(self) -> Dict[bytes, StateData]:
         with self.lock:
@@ -110,4 +109,4 @@ class State:
                 if current_time - info.last_heard_from > 20:
                     self._current_agents.pop(agent)
                     logger.warning(f"Agent {agent.decode('utf-8')} has not been heard "
-                                    f"from for a while, removing from connected list")
+                                   f"from for a while, removing from connected list")

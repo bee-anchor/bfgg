@@ -14,6 +14,7 @@ class TestStatusHandler:
         status=AgentStatus.TEST_RUNNING,
         cloned_repos=None,
         test_running="test",
+        test_id='1234',
         extra_info="interesting stuff",
         group=None
     )
@@ -22,6 +23,7 @@ class TestStatusHandler:
         status=AgentStatus.TEST_RUNNING,
         cloned_repos=set(),
         test_running="test",
+        test_id='1234',
         extra_info="interesting stuff",
         group="ungrouped"
     )
@@ -30,6 +32,7 @@ class TestStatusHandler:
         status=AgentStatus.AVAILABLE,
         cloned_repos=set(),
         test_running="",
+        test_id="",
         extra_info="",
         group="ungrouped"
     )

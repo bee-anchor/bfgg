@@ -2,9 +2,10 @@ import os
 from marshmallow import ValidationError, EXCLUDE
 from dotenv import load_dotenv
 from flask import Blueprint, request, jsonify
-import json
+from uuid import uuid4
+from datetime import datetime
 from bfgg.utils.messages import OutgoingMessageGrouped, CLONE, START_TEST, STOP_TEST, GROUP, OutgoingMessageTargeted
-from bfgg.controller.model import STATE
+from bfgg.controller.model import STATE, DYNAMO_DB
 from bfgg.controller.api.api_schemas import StartSchema, CloneSchema, GroupSchema, StopSchema, ResultsSchema
 from bfgg.utils.helpers import create_or_empty_results_folder
 from bfgg.controller import OUTGOING_QUEUE
@@ -44,12 +45,14 @@ def start():
         return jsonify(err.messages), bad_request
     project = result['project']
     test = result['testClass']
-    javaOpts = result.get('javaOpts', '')
+    java_opts = result.get('javaOpts', '')
     grp = result['group']
-    task = f"{project},{test},{javaOpts}".encode('utf-8')
+    test_id = str(uuid4())
+    task = f"{test_id},{project},{test},{java_opts}".encode('utf-8')
     # TODO - if test already running, return error
     OUTGOING_QUEUE.put(OutgoingMessageGrouped(START_TEST, task, group=grp.encode('utf-8')))
     create_or_empty_results_folder(results_folder, grp)
+    DYNAMO_DB.save_test_started(test_id, datetime.utcnow(), project, test, result.get('javaOpts', None))
     return {
         "test": "requested"
     }
@@ -71,7 +74,7 @@ def stop():
 @bp.route('/status', methods=['GET'])
 def status():
     current_state = STATE.current_agents_state_dict()
-    return json.dumps(current_state)
+    return jsonify(current_state)
 
 
 @bp.route('/results', methods=['POST'])
@@ -101,3 +104,8 @@ def group():
     return {
         "grouping": "requested"
     }
+
+
+@bp.route('/past-tests', methods=['GET'])
+def past_tests():
+    return jsonify(DYNAMO_DB.get_all())
