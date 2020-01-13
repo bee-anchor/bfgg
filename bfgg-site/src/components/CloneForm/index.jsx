@@ -14,6 +14,7 @@ const useStyles = makeStyles({
     height: '70%',
   },
   card: {
+    marginTop: '40px',
     paddingLeft: '1%',
     paddingRight: '1%',
     paddingBottom: '1%',
@@ -23,13 +24,14 @@ const useStyles = makeStyles({
 
 export default function CloneForm(props) {
   const [repo, setRepo] = useState();
-  const { setSnackbarOpen, setSnackbar } = props;
+  const { setSnackbarOpen, setSnackbar, selectedGroup } = props;
   const classes = useStyles();
 
   const sendClone = () => {
     const url = `http://${process.env.REACT_APP_CONTROLLER_HOST}:8000/clone`;
     axios.post(url, {
       repo,
+      group: selectedGroup
     })
       .then(() => {
         setSnackbar({ message: 'Clone requested', type: 'success' });
@@ -76,4 +78,5 @@ export default function CloneForm(props) {
 CloneForm.propTypes = {
   setSnackbarOpen: PropTypes.func.isRequired,
   setSnackbar: PropTypes.func.isRequired,
+  selectedGroup: PropTypes.string.isRequired,
 };

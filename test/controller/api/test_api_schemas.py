@@ -9,7 +9,8 @@ def test_start_schema_valid_input():
         StartSchema().load({
             'project': 'my-project',
             'testClass': 'test-class',
-            'javaOpts': 'java-opts'
+            'javaOpts': 'java-opts',
+            'group': 'group'
         })
     except ValidationError:
         pytest.fail('Validation unsuccessful, test failed')
@@ -19,7 +20,8 @@ def test_start_schema_valid_input_1():
     try:
         StartSchema().load({
             'project': 'my-project',
-            'testClass': 'test-class'
+            'testClass': 'test-class',
+            'group': 'group'
         })
     except ValidationError:
         pytest.fail('Validation unsuccessful, test failed')
@@ -45,7 +47,8 @@ def test_start_schema_invalid_input_1():
 def test_clone_schema_valid_input():
     try:
         CloneSchema().load({
-            'repo': 'git@github.com:bee-anchor/bfgg.git'
+            'repo': 'git@github.com:bee-anchor/bfgg.git',
+            'group': 'group'
         })
     except ValidationError:
         pytest.fail('Validation unsuccessful, test failed')
@@ -54,7 +57,8 @@ def test_clone_schema_valid_input():
 def test_clone_schema_valid_input_1():
     try:
         CloneSchema().load({
-            'repo': 'git@github.com:bee-anchor/bfgg.git'
+            'repo': 'git@github.com:bee-anchor/bfgg.git',
+            'group': 'group'
         })
     except ValidationError:
         pytest.fail('Validation unsuccessful, test failed')
@@ -63,7 +67,8 @@ def test_clone_schema_valid_input_1():
 def test_clone_schema_valid_input_2():
     try:
         CloneSchema().load({
-            'repo': 'git@github.com:bee-anchor/bfgg.git/'
+            'repo': 'git@github.com:bee-anchor/bfgg.git/',
+            'group': 'group'
         })
     except ValidationError:
         pytest.fail('Validation unsuccessful, test failed')
@@ -72,19 +77,22 @@ def test_clone_schema_valid_input_2():
 def test_clone_schema_invalid_input():
     with pytest.raises(ValidationError):
         CloneSchema().load({
-            'repo1': 'git@github.com:bee-anchor/bfgg.git'
+            'repo1': 'git@github.com:bee-anchor/bfgg.git',
+            'group': 'group'
         })
 
 
 def test_clone_schema_invalid_input_1():
     with pytest.raises(ValidationError):
         CloneSchema().load({
-            'repo': 'git@github.com:bee-anchor/bfgg.gi'
+            'repo': 'git@github.com:bee-anchor/bfgg.gi',
+            'group': 'group'
         })
 
 
 def test_clone_schema_invalid_input_2():
     with pytest.raises(ValidationError):
         CloneSchema().load({
-            'repo': 'it@github.com:bee-anchor/bfgg.git'
+            'repo': 'it@github.com:bee-anchor/bfgg.git',
+            'group': 'group'
         })

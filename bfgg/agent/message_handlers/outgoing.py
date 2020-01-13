@@ -2,7 +2,7 @@ import threading
 import zmq
 import atexit
 import logging.config
-from bfgg.agent.model import OUTGOING_QUEUE
+from bfgg.agent.model import OUTGOING_QUEUE, STATE
 from bfgg.utils.messages import BYE
 from bfgg.utils.messages import OutgoingMessage
 
@@ -26,8 +26,8 @@ class OutgoingMessageHandler(threading.Thread):
 
     def _message_handler_loop(self):
         message: OutgoingMessage = OUTGOING_QUEUE.get()
-        self.handler.send_multipart([self.identity, message.type, message.details])
+        self.handler.send_multipart([self.identity, STATE.group.encode('utf-8'), message.type, message.details])
 
     def exit_gracefully(self):
-        self.handler.send_multipart([self.identity, BYE, b"goodbye"])
+        self.handler.send_multipart([self.identity, STATE.group.encode('utf-8'), BYE, b"goodbye"])
         logging.info("Agent terminated")

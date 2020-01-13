@@ -1,11 +1,12 @@
 import socket
+import threading
 import os
 import logging.config
 from queue import Queue
 from dotenv import load_dotenv
-import pickle
-from bfgg.utils.messages import OutgoingMessage, STATUS
-from bfgg.utils.statuses import Statuses
+from bfgg.agent.state import State
+from bfgg.agent.state_utils import handle_state_change_partial
+
 
 load_dotenv()
 
@@ -39,20 +40,6 @@ def ensure_results_folder():
 OUTGOING_QUEUE = Queue()
 STATE_QUEUE = Queue()
 
-ensure_results_folder()
-IDENTITY = get_identity(CONTROLLER_HOST)
-
-
-def handle_state_change(message_type: str = STATUS, status: Statuses = None, cloned_repo: str = None,
-                        test_running: str = 'None', extra_info: str = 'None'):
-    new_state = {
-        "extra_info": extra_info
-    }
-    if status:
-        new_state["status"] = status
-    if cloned_repo:
-        new_state["cloned_repos"] = {cloned_repo}
-    if test_running:
-        new_state["test_running"] = test_running
-    OUTGOING_QUEUE.put(OutgoingMessage(message_type, pickle.dumps(new_state)))
-    STATE_QUEUE.put(new_state)
+IDENTITY = os.getenv('AGENT_IDENTITY', default=get_identity(CONTROLLER_HOST))
+STATE = State(threading.Lock())
+handle_state_change = handle_state_change_partial(STATE_QUEUE, OUTGOING_QUEUE)

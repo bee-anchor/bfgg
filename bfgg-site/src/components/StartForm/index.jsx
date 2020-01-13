@@ -18,7 +18,7 @@ const useStyles = makeStyles({
 
 export default function StartForm(props) {
   const classes = useStyles();
-  const { setSnackbarOpen, setSnackbar } = props;
+  const { setSnackbarOpen, setSnackbar, selectedGroup } = props;
   const [name, setName] = useState();
   const [test, setTest] = useState();
   const [javaOpts, setJavaOpts] = useState();
@@ -26,6 +26,7 @@ export default function StartForm(props) {
   const sendStart = () => {
     const url = `http://${process.env.REACT_APP_CONTROLLER_HOST}:8000/start`;
     axios.post(url, {
+      group: selectedGroup,
       project: name,
       testClass: test,
       javaOpts,
@@ -91,4 +92,5 @@ export default function StartForm(props) {
 StartForm.propTypes = {
   setSnackbarOpen: PropTypes.func.isRequired,
   setSnackbar: PropTypes.func.isRequired,
+  selectedGroup: PropTypes.string.isRequired,
 };

@@ -2,7 +2,7 @@ import logging.config
 import subprocess
 import os
 from bfgg.agent.model import handle_state_change
-from bfgg.utils.statuses import Statuses
+from bfgg.utils.agentstatus import AgentStatus
 
 
 def clone_repo(project: str, tests_location: str):
@@ -16,15 +16,15 @@ def clone_repo(project: str, tests_location: str):
     except FileNotFoundError:
         logging.error("Directory for cloning doesn't exist")
         handle_state_change(
-            status=Statuses.ERROR,
+            status=AgentStatus.ERROR,
             extra_info="Exception found when cloning. Please make sure the directory for cloning repositories exists.")
         return
-    handle_state_change(status=Statuses.CLONING)
+    handle_state_change(status=AgentStatus.CLONING)
     stdout, stderror = resp.communicate()
     stdout = stdout.decode('utf-8')
     stderror = stderror.decode('utf-8')
     if "Receiving objects: 100%" in stderror:
-        handle_state_change(status=Statuses.AVAILABLE, cloned_repo=project_name)
+        handle_state_change(status=AgentStatus.AVAILABLE, cloned_repo={project_name})
         logging.info(f"Cloned {project_name}")
     elif "already exists and is not an empty directory" in stderror:
         command = (f"git -C {os.path.join(tests_location, project_name)} fetch && "
@@ -36,10 +36,11 @@ def clone_repo(project: str, tests_location: str):
                                 stderr=subprocess.STDOUT)
         stdout, stderror = resp.communicate()
         stdout = stdout.decode('utf-8')
-        handle_state_change(status=Statuses.AVAILABLE, cloned_repo=project_name)
+        logging.info(project_name)
+        handle_state_change(status=AgentStatus.AVAILABLE, cloned_repo={project_name})
         logging.info(f"Got latest {project_name}")
     elif "fatal: Could not read from remote repository" in stderror:
-        handle_state_change(status=Statuses.ERROR,
+        handle_state_change(status=AgentStatus.ERROR,
                             extra_info="Could not read from remote repository. Check agent for further details.")
     _log_if_present(stdout)
     _log_if_present(stderror)

@@ -16,11 +16,13 @@ const useStyles = makeStyles({
 
 export default function StopForm(props) {
   const classes = useStyles();
-  const { setSnackbarOpen, setSnackbar } = props;
+  const { setSnackbarOpen, setSnackbar, selectedGroup } = props;
 
   const sendStop = () => {
     const url = `http://${process.env.REACT_APP_CONTROLLER_HOST}:8000/stop`;
-    axios.post(url)
+    axios.post(url, {
+      group: selectedGroup,
+    })
       .then(() => {
         setSnackbar({ message: 'Stop requested', type: 'success' });
         setSnackbarOpen(true);
@@ -51,4 +53,5 @@ export default function StopForm(props) {
 StopForm.propTypes = {
   setSnackbarOpen: PropTypes.func.isRequired,
   setSnackbar: PropTypes.func.isRequired,
+  selectedGroup: PropTypes.string.isRequired,
 };

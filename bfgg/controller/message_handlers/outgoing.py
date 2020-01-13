@@ -1,9 +1,10 @@
+from typing import Union
 import threading
 import zmq
 import time
 import logging.config
 from queue import Empty
-from bfgg.utils.messages import OutgoingMessage
+from bfgg.utils.messages import OutgoingMessageGrouped, OutgoingMessageTargeted
 from bfgg.controller.model import State
 
 
@@ -16,7 +17,11 @@ class OutgoingMessageHandler(threading.Thread):
         self.state = state
         self.outgoing_queue = outgoing_queue
         self.identity = b'controller'
-        self.handler = self.context.socket(zmq.PUSH)
+        self.handler = self.context.socket(zmq.ROUTER)
+        self.handler.setsockopt(zmq.ROUTER_MANDATORY, True)
+        # if an agent disconnects and reconnects with the same identity,
+        # router will handover connection to the 'new' one
+        self.handler.setsockopt(zmq.ROUTER_HANDOVER, 1)
         self.handler.bind(f"tcp://*:{self.port}")
 
     def run(self):
@@ -32,11 +37,18 @@ class OutgoingMessageHandler(threading.Thread):
     def _message_handler_loop(self):
         self.state.handle_dead_agents()
         try:
-            message: OutgoingMessage = self.outgoing_queue.get(timeout=1)
+            message: Union[OutgoingMessageGrouped, OutgoingMessageTargeted] = self.outgoing_queue.get(timeout=1)
         except Empty:
             return
         if message is not None:
-            current_agents = self.state.connected_agents
-            for _ in current_agents:
-                # round robins to each connected agent
-                self.handler.send_multipart([self.identity, message.type, message.details])
+            self.send_message(message)
+
+    def send_message(self, message: Union[OutgoingMessageGrouped, OutgoingMessageTargeted]):
+        if type(message) is OutgoingMessageGrouped:
+            for agent in self.state.connected_agents_by_group(message.group.decode('utf-8')):
+                logging.debug([agent, self.identity, message.type, message.details])
+                self.handler.send_multipart([agent, self.identity, message.type, message.details])
+        elif type(message) is OutgoingMessageTargeted:
+            for agent in message.targets:
+                logging.debug([agent, self.identity, message.type, message.details])
+                self.handler.send_multipart([agent, self.identity, message.type, message.details])

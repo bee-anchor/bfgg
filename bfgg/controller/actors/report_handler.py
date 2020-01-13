@@ -1,14 +1,15 @@
 import logging.config
 import os
+import shutil
 import subprocess
 from datetime import datetime
 import boto3
 
 
-class ReportHandler():
+class ReportHandler:
 
-    def __init__(self, results_folder: str, gatling_location, s3_bucket: str, s3_region: str):
-        self.results_folder = results_folder
+    def __init__(self, results_folder: str, gatling_location, s3_bucket: str, s3_region: str, group: str):
+        self.results_folder = os.path.join(results_folder, group)
         self.gatling_location = gatling_location
         self.s3_bucket = s3_bucket
         self.s3_region = s3_region
@@ -47,7 +48,7 @@ class ReportHandler():
     def _upload_results(self):
         folder = datetime.now().strftime("%Y%m%d_%H%M")
         s3 = boto3.resource('s3', region_name=self.s3_region)
-        for path,_,files in os.walk(self.results_folder):
+        for path, _, files in os.walk(self.results_folder):
             for file in files:
                 # if we're in the top directory
                 current_folder = os.path.basename(path)
@@ -60,6 +61,7 @@ class ReportHandler():
                                                                 ExtraArgs=extra_args)
         url = f'https://{self.s3_bucket}.s3.amazonaws.com/{folder}/index.html'
         logging.info(url)
+        shutil.rmtree(self.results_folder)
         return url
 
     def run(self):
