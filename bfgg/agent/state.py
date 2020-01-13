@@ -1,6 +1,6 @@
 from __future__ import annotations
 import threading
-from typing import Union
+from typing import Optional
 from dataclasses import dataclass
 from bfgg.utils.agentstatus import AgentStatus
 
@@ -8,10 +8,10 @@ from bfgg.utils.agentstatus import AgentStatus
 @dataclass(frozen=True)
 class StateData:
     status: AgentStatus
-    cloned_repos: Union[set, None]
-    test_running: Union[str, None]
-    extra_info: Union[str, None]
-    group: Union[str, None]
+    cloned_repos: Optional[set]
+    test_running: Optional[str]
+    extra_info: Optional[str]
+    group: Optional[str]
 
 
 class State:

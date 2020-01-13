@@ -96,7 +96,6 @@ class TestState:
         }
 
     def test_current_agent_state_by_group(self, state):
-        print(state.current_agents_state_by_group("group1"))
         assert state.current_agents_state_by_group("group1") == {
             b'A': StateData(AgentStatus.AVAILABLE, set(), "", "", "group1"),
             b'C': StateData(AgentStatus.AVAILABLE, set(), "", "", "group1")
