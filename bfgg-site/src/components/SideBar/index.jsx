@@ -7,25 +7,24 @@ import Divider from '@material-ui/core/Divider';
 import PlayCircleFilledOutlinedIcon from '@material-ui/icons/PlayCircleFilledOutlined';
 import TimelineIcon from '@material-ui/icons/Timeline';
 import React from 'react';
-import { grey } from '@material-ui/core/colors';
 import PropTypes from 'prop-types';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(theme => ({
   drawer: {
     width: '160px',
   },
   drawerPaper: {
     width: '160px',
-    background: grey['400'],
+    background: theme.palette.grey["400"],
   },
   tabsIndicator: {
     width: '0px',
   },
   tabSelected: {
-    backgroundColor: grey['800'],
-    color: grey['100'],
+    backgroundColor: theme.palette.grey["800"],
+    color: theme.palette.grey["100"],
   },
-});
+}));
 
 export default function SideBar(props) {
   const classes = useStyles();
