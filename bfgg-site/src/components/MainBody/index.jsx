@@ -26,12 +26,13 @@ export default function MainBody(props) {
 
   const handleAgents = (response) => {
     setAgents(response);
-    const newGroups = [
-      ...new Set(response.map(
-        (agent) => agent.group,
-      )),
-    ].sort();
+    const newGroups = [...new Set(Object.entries(response).map(
+      ([, state]) => state.group,
+    ))].sort();
     setGroups(newGroups);
+    if (!newGroups.includes(selectedGroup)) {
+      setSelectedGroup(newGroups[0]);
+    }
   };
 
   const getAgentState = () => {
