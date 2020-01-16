@@ -73,7 +73,7 @@ def stop():
 
 @bp.route('/status', methods=['GET'])
 def status():
-    current_state = STATE.current_agents_state_dict()
+    current_state = STATE.current_agents_state_list()
     return jsonify(current_state)
 
 

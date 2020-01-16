@@ -4,7 +4,9 @@
         "es6": true
     },
     "extends": [
-        "airbnb"
+        "airbnb",
+        "eslint:recommended",
+        "plugin:react/recommended"
     ],
     "globals": {
         "Atomics": "readonly",
@@ -19,6 +21,11 @@
     },
     "plugins": [
         "react"
+    ],
+    "ignorePatterns": [
+        "node_modules/",
+        "src/serviceWorker.js",
+        "build/"
     ],
     "rules": {
     }

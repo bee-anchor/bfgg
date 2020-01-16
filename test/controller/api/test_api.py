@@ -80,15 +80,18 @@ class TestApi:
 
     def test_status(self, mocker):
         mocker.patch("bfgg.controller.api.STATE", **{
-            'current_agents_state_dict.return_value': {
-                "a": {"status": "AVAILABLE",
-                      "cloned_repos": [],
-                      "test_running": "",
-                      "extra_info": ""}
-            }
+            'current_agents_state_list.return_value': [
+                {
+                    "identity": "A",
+                    "status": "AVAILABLE",
+                    "cloned_repos": [],
+                    "test_running": "",
+                    "extra_info": ""
+                }
+            ]
         })
         res = self.client().get('/status')
-        expected = {"a": {"status": "AVAILABLE", "cloned_repos": [], "test_running": "", "extra_info": ""}}
+        expected = [{"identity": "A", "status": "AVAILABLE", "cloned_repos": [], "test_running": "", "extra_info": ""}]
         assert res.status_code == 200
         assert res.json == expected
 
