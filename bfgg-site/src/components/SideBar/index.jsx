@@ -8,7 +8,7 @@ import PlayCircleFilledOutlinedIcon from '@material-ui/icons/PlayCircleFilledOut
 import TimelineIcon from '@material-ui/icons/Timeline';
 import React from 'react';
 import { grey } from '@material-ui/core/colors';
-import PropTypes from "prop-types";
+import PropTypes from 'prop-types';
 
 const useStyles = makeStyles({
   drawer: {
@@ -19,24 +19,17 @@ const useStyles = makeStyles({
     background: grey['400'],
   },
   tabsIndicator: {
-    width: '0px'
+    width: '0px',
   },
   tabSelected: {
     backgroundColor: grey['800'],
-    color: grey['100']
-  }
+    color: grey['100'],
+  },
 });
 
 export default function SideBar(props) {
   const classes = useStyles();
   const { tabValue, setTabValue } = props;
-
-  function tabProps(index) {
-    return {
-      id: `tab-${index}`,
-      'aria-controls': `tabpanel-${index}`,
-    };
-  }
 
   return (
     <Drawer
@@ -47,16 +40,28 @@ export default function SideBar(props) {
         paper: classes.drawerPaper,
       }}
     >
-      <Typography variant="h2" align='center' color='textSecondary'>BFGG</Typography>
-      <Divider variant="middle"/>
+      <Typography variant="h2" align="center" color="textSecondary">BFGG</Typography>
+      <Divider variant="middle" />
       <Tabs
-          classes={{indicator: classes.tabsIndicator}}
-          orientation="vertical"
-          value={tabValue}
-          onChange={(event, newValue) => {setTabValue(newValue)}}
+        classes={{ indicator: classes.tabsIndicator }}
+        orientation="vertical"
+        value={tabValue}
+        onChange={(event, newValue) => { setTabValue(newValue); }}
       >
-        <Tab classes={{selected: classes.tabSelected}} icon={<PlayCircleFilledOutlinedIcon />} label="Run" {...tabProps(0)}/>
-        <Tab classes={{selected: classes.tabSelected}} icon={<TimelineIcon />} label="Past Tests" {...tabProps(1)}/>
+        <Tab
+          classes={{ selected: classes.tabSelected }}
+          icon={<PlayCircleFilledOutlinedIcon />}
+          label="Run"
+          id="tab-0"
+          aria-controls="tabpanel-0"
+        />
+        <Tab
+          classes={{ selected: classes.tabSelected }}
+          icon={<TimelineIcon />}
+          label="Past Tests"
+          id="tab-1"
+          aria-controls="tabpanel-1"
+        />
       </Tabs>
     </Drawer>
   );

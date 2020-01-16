@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import { lighten, makeStyles } from '@material-ui/core/styles';
@@ -14,61 +14,89 @@ import Paper from '@material-ui/core/Paper';
 import IconButton from '@material-ui/core/IconButton';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import OpenInNewIcon from '@material-ui/icons/OpenInNew';
-import axios from "axios";
+import axios from 'axios';
 
 const headCells = [
-  { id: 'testId', label: 'Test Id' },
-  { id: 'project', label: 'Project' },
-  { id: 'testClass', label: 'Test Class' },
-  { id: 'javaOpts', label: 'Java Opts' },
-  { id: 'startTime', label: 'Start Time' },
-  { id: 'endTime', label: 'End Time' },
-  { id: 'testResults', label: 'Test Results' },
+  { id: 'TestId', label: 'Test Id' },
+  { id: 'Project', label: 'Project' },
+  { id: 'TestClass', label: 'Test Class' },
+  { id: 'JavaOpts', label: 'Java Opts' },
+  { id: 'StartTime', label: 'Start Time' },
+  { id: 'EndTime', label: 'End Time' },
+  { id: 'TestResults', label: 'Test Results' },
 ];
 
+function desc(a, b, orderBy) {
+  if (b[orderBy] < a[orderBy]) {
+    return -1;
+  }
+  if (b[orderBy] > a[orderBy]) {
+    return 1;
+  }
+  return 0;
+}
+
+function stableSort(array, cmp) {
+  const stabilizedThis = array.map((el, index) => [el, index]);
+  stabilizedThis.sort((a, b) => {
+    const order = cmp(a[0], b[0]);
+    if (order !== 0) return order;
+    return a[1] - b[1];
+  });
+  return stabilizedThis.map((el) => el[0]);
+}
+
+function getSorting(order, orderBy) {
+  return order === 'desc' ? (a, b) => desc(a, b, orderBy) : (a, b) => -desc(a, b, orderBy);
+}
+
 function EnhancedTableHead(props) {
-  const { classes, order, orderBy, onRequestSort } = props;
-  const createSortHandler = property => event => {
+  const {
+    classes, order, orderBy, onRequestSort,
+  } = props;
+  const createSortHandler = (property) => (event) => {
     onRequestSort(event, property);
   };
 
   return (
-      <TableHead>
-        <TableRow>
-          {headCells.map(headCell => (
-              <TableCell
-                  key={headCell.id}
-                  align='center'
-                  padding='default'
-                  sortDirection={orderBy === headCell.id ? order : false}
-              >
-                <TableSortLabel
-                    active={orderBy === headCell.id}
-                    direction={order}
-                    onClick={createSortHandler(headCell.id)}
-                >
-                  {headCell.label}
-                  {orderBy === headCell.id ? (
-                      <span className={classes.visuallyHidden}>
+    <TableHead>
+      <TableRow>
+        {headCells.map((headCell) => (
+          <TableCell
+            key={headCell.id}
+            align="center"
+            padding="default"
+            sortDirection={orderBy === headCell.id ? order : false}
+          >
+            <TableSortLabel
+              active={orderBy === headCell.id}
+              direction={order}
+              onClick={createSortHandler(headCell.id)}
+            >
+              {headCell.label}
+              {orderBy === headCell.id ? (
+                <span className={classes.visuallyHidden}>
                   {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
                 </span>
-                  ) : null}
-                </TableSortLabel>
-              </TableCell>
-          ))}
-        </TableRow>
-      </TableHead>
+              ) : null}
+            </TableSortLabel>
+          </TableCell>
+        ))}
+      </TableRow>
+    </TableHead>
   );
 }
 
 EnhancedTableHead.propTypes = {
-  classes: PropTypes.object.isRequired,
+  classes: PropTypes.shape({
+    visuallyHidden: PropTypes.string,
+  }).isRequired,
   onRequestSort: PropTypes.func.isRequired,
   order: PropTypes.oneOf(['asc', 'desc']).isRequired,
   orderBy: PropTypes.string.isRequired,
 };
 
-const useToolbarStyles = makeStyles(theme => ({
+const useToolbarStyles = makeStyles((theme) => ({
   root: {
     paddingLeft: theme.spacing(2),
     paddingRight: theme.spacing(1),
@@ -76,14 +104,14 @@ const useToolbarStyles = makeStyles(theme => ({
   },
   highlight:
       theme.palette.type === 'light'
-          ? {
-            color: theme.palette.secondary.main,
-            backgroundColor: lighten(theme.palette.secondary.light, 0.85),
-          }
-          : {
-            color: theme.palette.text.primary,
-            backgroundColor: theme.palette.secondary.dark,
-          },
+        ? {
+          color: theme.palette.secondary.main,
+          backgroundColor: lighten(theme.palette.secondary.light, 0.85),
+        }
+        : {
+          color: theme.palette.text.primary,
+          backgroundColor: theme.palette.secondary.dark,
+        },
   title: {
     flex: '1 1 100%',
   },
@@ -94,16 +122,16 @@ const EnhancedTableToolbar = (props) => {
   const { getPastTests } = props;
 
   return (
-      <Toolbar
-          className={clsx(classes.root)}
-      >
-        <Typography className={classes.title} variant="h6" id="testsTableTitle">
+    <Toolbar
+      className={clsx(classes.root)}
+    >
+      <Typography className={classes.title} variant="h6" id="testsTableTitle">
           Past Tests
-        </Typography>
-        <IconButton onClick={getPastTests}>
-          <RefreshIcon/>
-        </IconButton>
-      </Toolbar>
+      </Typography>
+      <IconButton onClick={getPastTests}>
+        <RefreshIcon />
+      </IconButton>
+    </Toolbar>
   );
 };
 
@@ -111,7 +139,7 @@ EnhancedTableToolbar.propTypes = {
   getPastTests: PropTypes.func.isRequired,
 };
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     width: '100%',
   },
@@ -138,12 +166,12 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function PastTestsTable(props) {
-  const {selectedGroup, setSnackbar, setSnackbarOpen } = props;
+function PastTestsTable(props) {
+  const { selectedGroup, setSnackbar, setSnackbarOpen } = props;
   const classes = useStyles();
   const [order, setOrder] = React.useState('asc');
   const [orderBy, setOrderBy] = React.useState('StartTime');
-  const [ tests, setTests ] = useState([]);
+  const [tests, setTests] = useState([]);
 
   const handleRequestSort = (event, property) => {
     const isDesc = orderBy === property && order === 'desc';
@@ -154,56 +182,54 @@ export default function PastTestsTable(props) {
   const getPastTests = () => {
     const url = `http://${process.env.REACT_APP_CONTROLLER_HOST}:8000/past-tests`;
     axios.get(url)
-        .then((res) => setTests(res.data));
+      .then((res) => setTests(res.data));
   };
 
   useEffect(() => {
-    getPastTests()
+    getPastTests();
   }, []);
 
   return (
-      <div className={classes.root}>
-        <Paper className={classes.paper}>
-          <EnhancedTableToolbar getPastTests={getPastTests}/>
-          <div className={classes.tableWrapper}>
-            <Table
-                className={classes.table}
-                aria-labelledby="testsTableTitle"
-                size="medium"
-                aria-label="past tests table"
-            >
-              <EnhancedTableHead
-                  classes={classes}
-                  order={order}
-                  orderBy={orderBy}
-                  onRequestSort={handleRequestSort}
-              />
-              <TableBody>
-                {tests.map( (test) => {
-                  return (
-                      <TableRow
-                          hover
-                          key={test['TestId']}
-                      >
-                        <TableCell align="center">{test['TestId']}</TableCell>
-                        <TableCell align="center">{test['Project']}</TableCell>
-                        <TableCell align="center">{test['TestClass']}</TableCell>
-                        <TableCell align="center">{test['javaOpts']}</TableCell>
-                        <TableCell align="left">{test['StartTime']}</TableCell>
-                        <TableCell align="left">{test['EndTime']}</TableCell>
-                        <TableCell align="center">
-                          {test.hasOwnProperty('TestResultsUrl') ? (
-                              <a target="_blank" href={test['TestResultsUrl']}><OpenInNewIcon/></a>
-                          ) : ("")}
-                        </TableCell>
-                      </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
-        </Paper>
-      </div>
+    <div className={classes.root}>
+      <Paper className={classes.paper}>
+        <EnhancedTableToolbar getPastTests={getPastTests} />
+        <div className={classes.tableWrapper}>
+          <Table
+            className={classes.table}
+            aria-labelledby="testsTableTitle"
+            size="medium"
+            aria-label="past tests table"
+          >
+            <EnhancedTableHead
+              classes={classes}
+              order={order}
+              orderBy={orderBy}
+              onRequestSort={handleRequestSort}
+            />
+            <TableBody>
+              {stableSort(tests, getSorting(order, orderBy)).map((test) => (
+                <TableRow
+                  hover
+                  key={test.TestId}
+                >
+                  <TableCell align="center">{test.TestId}</TableCell>
+                  <TableCell align="center">{test.Project}</TableCell>
+                  <TableCell align="center">{test.TestClass}</TableCell>
+                  <TableCell align="center">{test.javaOpts}</TableCell>
+                  <TableCell align="left">{test.StartTime}</TableCell>
+                  <TableCell align="left">{test.EndTime}</TableCell>
+                  <TableCell align="center">
+                    {Object.prototype.hasOwnProperty.call(test, 'TestResultsUrl') ? (
+                      <a target="_blank" rel="noopener noreferrer" href={test.TestResultsUrl}><OpenInNewIcon aria-label="open in new tab" /></a>
+                    ) : ('')}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </Paper>
+    </div>
   );
 }
 
@@ -212,3 +238,5 @@ PastTestsTable.propTypes = {
   setSnackbar: PropTypes.func.isRequired,
   setSnackbarOpen: PropTypes.func.isRequired,
 };
+
+export default React.memo(PastTestsTable);

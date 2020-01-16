@@ -2,12 +2,12 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { Box } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
+import PropTypes from 'prop-types';
 import useInterval from '../../hooks/useInterval';
 import BodyAgents from '../BodyAgents';
 import RunTab from '../RunTab';
 import PastTab from '../PastTab';
 import CustomSnackbar from '../CustomSnackbar';
-import PropTypes from "prop-types";
 
 const useStyles = makeStyles({
   main: {
@@ -17,7 +17,7 @@ const useStyles = makeStyles({
 
 export default function MainBody(props) {
   const classes = useStyles();
-  const [agents, setAgents] = useState({});
+  const [agents, setAgents] = useState([]);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({ message: '', type: '' });
   const [groups, setGroups] = useState([]);
@@ -25,8 +25,13 @@ export default function MainBody(props) {
   const { tabValue } = props;
 
   const handleAgents = (response) => {
-      setAgents(response);
-      setGroups([...new Set(Object.entries(agents).map(([identity, state]) => state.group))].sort());
+    setAgents(response);
+    const newGroups = [
+      ...new Set(response.map(
+        (agent) => agent.group,
+      )),
+    ].sort();
+    setGroups(newGroups);
   };
 
   const getAgentState = () => {
@@ -43,21 +48,37 @@ export default function MainBody(props) {
   );
 
   return (
-      <Box className={classes.main}>
-          <BodyAgents groups={groups} setSelectedGroup={setSelectedGroup} selectedGroup={selectedGroup}
-                      agents={agents} setSnackbarOpen={setSnackbarOpen} setSnackbar={setSnackbar} />
-          <RunTab tabValue={tabValue} setSnackbarOpen={setSnackbarOpen} setSnackbar={setSnackbar} selectedGroup={selectedGroup}/>
-          <PastTab tabValue={tabValue} setSnackbarOpen={setSnackbarOpen} setSnackbar={setSnackbar} selectedGroup={selectedGroup}/>
-          <CustomSnackbar
-              setSnackbarOpen={setSnackbarOpen}
-              snackbarOpen={snackbarOpen}
-              message={snackbar.message}
-              type={snackbar.type}
-          />
-      </Box>
+    <Box className={classes.main}>
+      <BodyAgents
+        groups={groups}
+        setSelectedGroup={setSelectedGroup}
+        selectedGroup={selectedGroup}
+        agents={agents}
+        setSnackbarOpen={setSnackbarOpen}
+        setSnackbar={setSnackbar}
+      />
+      <RunTab
+        tabValue={tabValue}
+        setSnackbarOpen={setSnackbarOpen}
+        setSnackbar={setSnackbar}
+        selectedGroup={selectedGroup}
+      />
+      <PastTab
+        tabValue={tabValue}
+        setSnackbarOpen={setSnackbarOpen}
+        setSnackbar={setSnackbar}
+        selectedGroup={selectedGroup}
+      />
+      <CustomSnackbar
+        setSnackbarOpen={setSnackbarOpen}
+        snackbarOpen={snackbarOpen}
+        message={snackbar.message}
+        type={snackbar.type}
+      />
+    </Box>
   );
 }
 
 MainBody.propTypes = {
-    tabValue: PropTypes.number.isRequired,
+  tabValue: PropTypes.number.isRequired,
 };

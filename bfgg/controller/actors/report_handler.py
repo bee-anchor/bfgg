@@ -45,9 +45,9 @@ class ReportHandler:
                 stderr=subprocess.STDOUT)
             stdout, stderror = report_process.communicate()
             stdout = stdout.decode('utf-8')
+            self.logger.info(stdout)
         except Exception as e:
             self.logger.error(e)
-        self.logger.info(stdout)
 
     def _upload_results(self):
         folder = datetime.now().strftime("%Y%m%d_%H%M")

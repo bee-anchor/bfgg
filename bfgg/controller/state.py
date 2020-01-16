@@ -78,9 +78,9 @@ class State:
                 filtered_state[i] = s
         return filtered_state
 
-    def current_agents_state_dict(self) -> Dict[str, dict]:
+    def current_agents_state_list(self) -> List[dict]:
         with self.lock:
-            return {i.decode('utf-8'): a.to_dict() for i, a in self._current_agents.items()}
+            return [{**a.to_dict(), **{'identity': i.decode('utf-8')}} for i, a in self._current_agents.items()]
 
     def current_groups(self) -> List[str]:
         groups = list(set([a.state.group for i, a in self._current_agents.items()]))

@@ -30,7 +30,7 @@ export default function CloneForm(props) {
     const url = `http://${process.env.REACT_APP_CONTROLLER_HOST}:8000/clone`;
     axios.post(url, {
       repo,
-      group: selectedGroup
+      group: selectedGroup,
     })
       .then(() => {
         setSnackbar({ message: 'Clone requested', type: 'success' });

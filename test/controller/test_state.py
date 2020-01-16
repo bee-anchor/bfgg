@@ -101,16 +101,17 @@ class TestState:
             b'C': StateData(AgentStatus.AVAILABLE, set(), "", "", "", "group1")
         }
 
-    def test_current_agent_state_dict(self, minimal_state):
-        assert minimal_state.current_agents_state_dict() == {
-            "A": {
+    def test_current_agent_state_list(self, minimal_state):
+        assert minimal_state.current_agents_state_list() == [
+            {
+                "identity": "A",
                 "status": "AVAILABLE",
                 "cloned_repos": [],
                 "test_running": "",
                 "extra_info": "",
                 "group": "group1"
             }
-        }
+        ]
 
     def test_current_groups(self, state):
         assert set(state.current_groups()) == {"group1", "group2"}
