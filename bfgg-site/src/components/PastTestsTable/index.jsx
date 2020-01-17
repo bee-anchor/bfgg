@@ -12,7 +12,9 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
 import IconButton from '@material-ui/core/IconButton';
+import Tooltip from '@material-ui/core/Tooltip';
 import RefreshIcon from '@material-ui/icons/Refresh';
+import ReplayIcon from '@material-ui/icons/Replay';
 import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 import axios from 'axios';
 
@@ -61,6 +63,11 @@ function EnhancedTableHead(props) {
   return (
     <TableHead>
       <TableRow>
+        <TableCell
+            key="rerun"
+            align="center"
+            padding="default"
+        />
         {headCells.map((headCell) => (
           <TableCell
             key={headCell.id}
@@ -128,9 +135,11 @@ const EnhancedTableToolbar = (props) => {
       <Typography className={classes.title} variant="h6" id="testsTableTitle">
           Past Tests
       </Typography>
-      <IconButton onClick={getPastTests}>
-        <RefreshIcon />
-      </IconButton>
+      <Tooltip title="Refresh">
+        <IconButton onClick={getPastTests}>
+          <RefreshIcon />
+        </IconButton>
+      </Tooltip>
     </Toolbar>
   );
 };
@@ -169,7 +178,7 @@ const useStyles = makeStyles((theme) => ({
 function PastTestsTable(props) {
   const { selectedGroup, setSnackbar, setSnackbarOpen } = props;
   const classes = useStyles();
-  const [order, setOrder] = React.useState('asc');
+  const [order, setOrder] = React.useState('desc');
   const [orderBy, setOrderBy] = React.useState('StartTime');
   const [tests, setTests] = useState([]);
 
@@ -183,6 +192,24 @@ function PastTestsTable(props) {
     const url = `http://${process.env.REACT_APP_CONTROLLER_HOST}:8000/past-tests`;
     axios.get(url)
       .then((res) => setTests(res.data));
+  };
+
+  const handleRequestRerun = (project, testClass, javaOpts) => {
+    const url = `http://${process.env.REACT_APP_CONTROLLER_HOST}:8000/start`;
+    axios.post(url, {
+      group: selectedGroup,
+      project: project,
+      testClass: testClass,
+      javaOpts,
+    })
+        .then(() => {
+              setSnackbar({ message: 'Start test requested', type: 'success' });
+              setSnackbarOpen(true);
+            },
+            () => {
+              setSnackbar({ message: 'Failed to start test', type: 'error' });
+              setSnackbarOpen(true);
+            });
   };
 
   useEffect(() => {
@@ -212,10 +239,20 @@ function PastTestsTable(props) {
                   hover
                   key={test.TestId}
                 >
+                  <TableCell align="center">
+                    <Tooltip title="Re-run Test">
+                      <IconButton
+                          onClick={() => handleRequestRerun(test.Project, test.TestClass, test.JavaOpts)}
+                          aria-label="re-run test"
+                      >
+                        <ReplayIcon/>
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
                   <TableCell align="center">{test.TestId}</TableCell>
                   <TableCell align="center">{test.Project}</TableCell>
                   <TableCell align="center">{test.TestClass}</TableCell>
-                  <TableCell align="center">{test.javaOpts}</TableCell>
+                  <TableCell align="center">{test.JavaOpts}</TableCell>
                   <TableCell align="left">{test.StartTime}</TableCell>
                   <TableCell align="left">{test.EndTime}</TableCell>
                   <TableCell align="center">
