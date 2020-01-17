@@ -75,7 +75,7 @@ function AgentsTable(props) {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = Object.entries(agents).map(([identity]) => identity);
+      const newSelecteds = agents.map((agent) => agent.identity);
       setSelected(newSelecteds);
       return;
     }
