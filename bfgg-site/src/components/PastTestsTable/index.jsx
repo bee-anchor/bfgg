@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import { lighten, makeStyles } from '@material-ui/core/styles';
+import TableContainer from '@material-ui/core/TableContainer';
+import TablePagination from '@material-ui/core/TablePagination';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -61,36 +63,36 @@ function EnhancedTableHead(props) {
   };
 
   return (
-    <TableHead>
-      <TableRow>
-        <TableCell
-            key="rerun"
-            align="center"
-            padding="default"
-        />
-        {headCells.map((headCell) => (
+      <TableHead>
+        <TableRow>
           <TableCell
-            key={headCell.id}
-            align="center"
-            padding="default"
-            sortDirection={orderBy === headCell.id ? order : false}
-          >
-            <TableSortLabel
-              active={orderBy === headCell.id}
-              direction={order}
-              onClick={createSortHandler(headCell.id)}
-            >
-              {headCell.label}
-              {orderBy === headCell.id ? (
-                <span className={classes.visuallyHidden}>
+              key="rerun"
+              align="center"
+              padding="default"
+          />
+          {headCells.map((headCell) => (
+              <TableCell
+                  key={headCell.id}
+                  align="center"
+                  padding="default"
+                  sortDirection={orderBy === headCell.id ? order : false}
+              >
+                <TableSortLabel
+                    active={orderBy === headCell.id}
+                    direction={order}
+                    onClick={createSortHandler(headCell.id)}
+                >
+                  {headCell.label}
+                  {orderBy === headCell.id ? (
+                      <span className={classes.visuallyHidden}>
                   {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
                 </span>
-              ) : null}
-            </TableSortLabel>
-          </TableCell>
-        ))}
-      </TableRow>
-    </TableHead>
+                  ) : null}
+                </TableSortLabel>
+              </TableCell>
+          ))}
+        </TableRow>
+      </TableHead>
   );
 }
 
@@ -111,14 +113,14 @@ const useToolbarStyles = makeStyles((theme) => ({
   },
   highlight:
       theme.palette.type === 'light'
-        ? {
-          color: theme.palette.secondary.main,
-          backgroundColor: lighten(theme.palette.secondary.light, 0.85),
-        }
-        : {
-          color: theme.palette.text.primary,
-          backgroundColor: theme.palette.secondary.dark,
-        },
+          ? {
+            color: theme.palette.secondary.main,
+            backgroundColor: lighten(theme.palette.secondary.light, 0.85),
+          }
+          : {
+            color: theme.palette.text.primary,
+            backgroundColor: theme.palette.secondary.dark,
+          },
   title: {
     flex: '1 1 100%',
   },
@@ -129,18 +131,18 @@ const EnhancedTableToolbar = (props) => {
   const { getPastTests } = props;
 
   return (
-    <Toolbar
-      className={clsx(classes.root)}
-    >
-      <Typography className={classes.title} variant="h6" id="testsTableTitle">
+      <Toolbar
+          className={clsx(classes.root)}
+      >
+        <Typography className={classes.title} variant="h6" id="testsTableTitle">
           Past Tests
-      </Typography>
-      <Tooltip title="Refresh">
-        <IconButton onClick={getPastTests}>
-          <RefreshIcon />
-        </IconButton>
-      </Tooltip>
-    </Toolbar>
+        </Typography>
+        <Tooltip title="Refresh">
+          <IconButton onClick={getPastTests}>
+            <RefreshIcon />
+          </IconButton>
+        </Tooltip>
+      </Toolbar>
   );
 };
 
@@ -181,6 +183,8 @@ function PastTestsTable(props) {
   const [order, setOrder] = React.useState('desc');
   const [orderBy, setOrderBy] = React.useState('StartTime');
   const [tests, setTests] = useState([]);
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
   const handleRequestSort = (event, property) => {
     const isDesc = orderBy === property && order === 'desc';
@@ -188,10 +192,19 @@ function PastTestsTable(props) {
     setOrderBy(property);
   };
 
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = event => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
   const getPastTests = () => {
     const url = `http://${process.env.REACT_APP_CONTROLLER_HOST}:8000/past-tests`;
     axios.get(url)
-      .then((res) => setTests(res.data));
+        .then((res) => setTests(res.data));
   };
 
   const handleRequestRerun = (project, testClass, javaOpts) => {
@@ -217,56 +230,69 @@ function PastTestsTable(props) {
   }, []);
 
   return (
-    <div className={classes.root}>
-      <Paper className={classes.paper}>
-        <EnhancedTableToolbar getPastTests={getPastTests} />
-        <div className={classes.tableWrapper}>
-          <Table
-            className={classes.table}
-            aria-labelledby="testsTableTitle"
-            size="medium"
-            aria-label="past tests table"
-          >
-            <EnhancedTableHead
-              classes={classes}
-              order={order}
-              orderBy={orderBy}
-              onRequestSort={handleRequestSort}
-            />
-            <TableBody>
-              {stableSort(tests, getSorting(order, orderBy)).map((test) => (
-                <TableRow
-                  hover
-                  key={test.TestId}
-                >
-                  <TableCell align="center">
-                    <Tooltip title="Re-run Test">
-                      <IconButton
-                          onClick={() => handleRequestRerun(test.Project, test.TestClass, test.JavaOpts)}
-                          aria-label="re-run test"
+      <div className={classes.root}>
+        <Paper className={classes.paper}>
+          <EnhancedTableToolbar getPastTests={getPastTests} />
+          <div className={classes.tableWrapper}>
+            <TableContainer>
+              <Table
+                  className={classes.table}
+                  aria-labelledby="testsTableTitle"
+                  size="medium"
+                  aria-label="past tests table"
+              >
+                <EnhancedTableHead
+                    classes={classes}
+                    order={order}
+                    orderBy={orderBy}
+                    onRequestSort={handleRequestSort}
+                />
+                <TableBody>
+                  {stableSort(tests, getSorting(order, orderBy))
+                      .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                      .map((test) => (
+                      <TableRow
+                          hover
+                          key={test.TestId}
                       >
-                        <ReplayIcon/>
-                      </IconButton>
-                    </Tooltip>
-                  </TableCell>
-                  <TableCell align="center">{test.TestId}</TableCell>
-                  <TableCell align="center">{test.Project}</TableCell>
-                  <TableCell align="center">{test.TestClass}</TableCell>
-                  <TableCell align="center">{test.JavaOpts}</TableCell>
-                  <TableCell align="left">{test.StartTime}</TableCell>
-                  <TableCell align="left">{test.EndTime}</TableCell>
-                  <TableCell align="center">
-                    {Object.prototype.hasOwnProperty.call(test, 'TestResultsUrl') ? (
-                      <a target="_blank" rel="noopener noreferrer" href={test.TestResultsUrl}><OpenInNewIcon aria-label="open in new tab" /></a>
-                    ) : ('')}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </Paper>
-    </div>
+                        <TableCell align="center">
+                          <Tooltip title="Re-run Test">
+                            <IconButton
+                                onClick={() => handleRequestRerun(test.Project, test.TestClass, test.JavaOpts)}
+                                aria-label="re-run test"
+                            >
+                              <ReplayIcon/>
+                            </IconButton>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell align="center">{test.TestId}</TableCell>
+                        <TableCell align="center">{test.Project}</TableCell>
+                        <TableCell align="center">{test.TestClass}</TableCell>
+                        <TableCell align="center">{test.JavaOpts}</TableCell>
+                        <TableCell align="left">{test.StartTime}</TableCell>
+                        <TableCell align="left">{test.EndTime}</TableCell>
+                        <TableCell align="center">
+                          {Object.prototype.hasOwnProperty.call(test, 'TestResultsUrl') ? (
+                              <a target="_blank" rel="noopener noreferrer" href={test.TestResultsUrl}><OpenInNewIcon aria-label="open in new tab" /></a>
+                          ) : ('')}
+                        </TableCell>
+                      </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <TablePagination
+                rowsPerPageOptions={[5, 20, 50]}
+                component="div"
+                count={tests.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onChangePage={handleChangePage}
+                onChangeRowsPerPage={handleChangeRowsPerPage}
+            />
+          </div>
+        </Paper>
+      </div>
   );
 }
 
