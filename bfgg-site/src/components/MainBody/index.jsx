@@ -22,6 +22,7 @@ export default function MainBody(props) {
   const [snackbar, setSnackbar] = useState({ message: '', type: '' });
   const [groups, setGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState('ungrouped');
+  const [repo, setRepo] = useState();
   const [startName, setStartName] = useState();
   const [startTest, setStartTest] = useState();
   const [startJavaOpts, setStartJavaOpts] = useState();
@@ -66,6 +67,8 @@ export default function MainBody(props) {
         setSnackbarOpen={setSnackbarOpen}
         setSnackbar={setSnackbar}
         selectedGroup={selectedGroup}
+        repo={repo}
+        setRepo={setRepo}
         startName={startName}
         setStartName={setStartName}
         startTest={startTest}

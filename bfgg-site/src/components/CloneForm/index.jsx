@@ -22,8 +22,7 @@ const useStyles = makeStyles({
 });
 
 export default function CloneForm(props) {
-  const [repo, setRepo] = useState();
-  const { setSnackbarOpen, setSnackbar, selectedGroup } = props;
+  const { repo, setRepo, setSnackbarOpen, setSnackbar, selectedGroup } = props;
   const classes = useStyles();
 
   const sendClone = () => {
@@ -53,6 +52,7 @@ export default function CloneForm(props) {
             fullWidth
             margin="normal"
             variant="outlined"
+            value={repo}
             onChange={(e) => setRepo(e.target.value)}
           />
         </Grid>
@@ -78,4 +78,6 @@ CloneForm.propTypes = {
   setSnackbarOpen: PropTypes.func.isRequired,
   setSnackbar: PropTypes.func.isRequired,
   selectedGroup: PropTypes.string.isRequired,
+  repo: PropTypes.string.isRequired,
+  setRepo: PropTypes.func.isRequired,
 };

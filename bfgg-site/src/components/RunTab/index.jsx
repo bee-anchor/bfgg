@@ -17,7 +17,8 @@ export default function RunTab(props) {
   const classes = useStyles();
   const {
     tabValue, setSnackbarOpen, setSnackbar, selectedGroup,
-    startName, setStartName, startTest, setStartTest, startJavaOpts, setStartJavaOpts
+    repo, setRepo, startName, setStartName, startTest, setStartTest,
+    startJavaOpts, setStartJavaOpts
   } = props;
 
   return (
@@ -27,6 +28,8 @@ export default function RunTab(props) {
           setSnackbarOpen={setSnackbarOpen}
           setSnackbar={setSnackbar}
           selectedGroup={selectedGroup}
+          repo={repo}
+          setRepo={setRepo}
         />
         <StartForm
           setSnackbarOpen={setSnackbarOpen}
@@ -54,6 +57,8 @@ RunTab.propTypes = {
   setSnackbarOpen: PropTypes.func.isRequired,
   setSnackbar: PropTypes.func.isRequired,
   selectedGroup: PropTypes.string.isRequired,
+  repo: PropTypes.string.isRequired,
+  setRepo: PropTypes.func.isRequired,
   startName: PropTypes.string.isRequired,
   setStartName: PropTypes.func.isRequired,
   startTest: PropTypes.string.isRequired,
