@@ -116,4 +116,12 @@ def group():
 
 @bp.route('/past-tests', methods=['GET'])
 def past_tests():
-    return jsonify(DYNAMO_DB.get_all())
+    try:
+        results = DYNAMO_DB.get_all()
+    except Exception as e:
+        logger.error(e)
+        if hasattr(e, 'response'):
+            return {"error": e.response['Error']['Message']}, 500
+        else:
+            return {"error": "Something went wrong"}, 500
+    return jsonify(results)
