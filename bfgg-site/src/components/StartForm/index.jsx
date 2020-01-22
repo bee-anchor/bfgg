@@ -18,10 +18,7 @@ const useStyles = makeStyles({
 
 export default function StartForm(props) {
   const classes = useStyles();
-  const { setSnackbarOpen, setSnackbar, selectedGroup } = props;
-  const [name, setName] = useState();
-  const [test, setTest] = useState();
-  const [javaOpts, setJavaOpts] = useState();
+  const { name, setName, test, setTest, javaOpts, setJavaOpts, setSnackbarOpen, setSnackbar, selectedGroup } = props;
 
   const sendStart = () => {
     const url = `http://${process.env.REACT_APP_CONTROLLER_HOST}:8000/start`;
@@ -63,6 +60,7 @@ export default function StartForm(props) {
           fullWidth
           margin="normal"
           variant="filled"
+          value={name}
           onChange={(e) => setName(e.target.value)}
         />
         <TextField
@@ -73,6 +71,7 @@ export default function StartForm(props) {
           fullWidth
           margin="normal"
           variant="filled"
+          value={test}
           onChange={(e) => setTest(e.target.value)}
         />
         <TextField
@@ -83,6 +82,7 @@ export default function StartForm(props) {
           fullWidth
           margin="normal"
           variant="filled"
+          value={javaOpts}
           onChange={(e) => setJavaOpts(e.target.value)}
         />
         <Button
@@ -104,4 +104,10 @@ StartForm.propTypes = {
   setSnackbarOpen: PropTypes.func.isRequired,
   setSnackbar: PropTypes.func.isRequired,
   selectedGroup: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired,
+  setName: PropTypes.func.isRequired,
+  test: PropTypes.string.isRequired,
+  setTest: PropTypes.func.isRequired,
+  javaOpts: PropTypes.string.isRequired,
+  setJavaOpts: PropTypes.func.isRequired,
 };

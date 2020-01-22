@@ -22,6 +22,9 @@ export default function MainBody(props) {
   const [snackbar, setSnackbar] = useState({ message: '', type: '' });
   const [groups, setGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState('ungrouped');
+  const [startName, setStartName] = useState();
+  const [startTest, setStartTest] = useState();
+  const [startJavaOpts, setStartJavaOpts] = useState();
   const { tabValue } = props;
 
   const handleAgents = (response) => {
@@ -63,6 +66,12 @@ export default function MainBody(props) {
         setSnackbarOpen={setSnackbarOpen}
         setSnackbar={setSnackbar}
         selectedGroup={selectedGroup}
+        startName={startName}
+        setStartName={setStartName}
+        startTest={startTest}
+        setStartTest={setStartTest}
+        startJavaOpts={startJavaOpts}
+        setStartJavaOpts={setStartJavaOpts}
       />
       <PastTab
         tabValue={tabValue}
