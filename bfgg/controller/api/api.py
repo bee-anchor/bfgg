@@ -10,6 +10,7 @@ from bfgg.controller.api.api_schemas import StartSchema, CloneSchema, GroupSchem
 from bfgg.utils.helpers import create_or_empty_results_folder
 from bfgg.controller import OUTGOING_QUEUE
 from bfgg.controller.actors.report_handler import ReportHandler
+from bfgg.utils.logging import logger
 
 bp = Blueprint('root', __name__)
 
@@ -52,7 +53,14 @@ def start():
     # TODO - if test already running, return error
     OUTGOING_QUEUE.put(OutgoingMessageGrouped(START_TEST, task, group=grp.encode('utf-8')))
     create_or_empty_results_folder(results_folder, grp)
-    DYNAMO_DB.save_test_started(test_id, datetime.utcnow(), project, test, result.get('javaOpts', None))
+    try:
+        DYNAMO_DB.save_test_started(test_id, datetime.utcnow(), project, test, result.get('javaOpts', None))
+    except Exception as e:
+        logger.error(e)
+        if hasattr(e, 'response'):
+            return {"error": e.response['Error']['Message']}, 500
+        else:
+            return {"error": "Something went wrong"}, 500
     return {
         "test": "requested"
     }

@@ -30,15 +30,26 @@ export default function StartForm(props) {
       project: name,
       testClass: test,
       javaOpts,
+    }, {validateStatus: (status) => status === 200 })
+    .then(() => {
+      setSnackbar({ message: 'Start test requested', type: 'success' });
+      setSnackbarOpen(true);
     })
-      .then(() => {
-        setSnackbar({ message: 'Start test requested', type: 'success' });
+    .catch((error) => {
+      if (error.response) {
+        setSnackbar({ message: error.response.data.error, type: 'error' });
         setSnackbarOpen(true);
-      },
-      () => {
-        setSnackbar({ message: 'Failed to start test', type: 'error' });
+      } else if (error.request) {
+        setSnackbar({ message: "Something went wrong", type: 'error' });
         setSnackbarOpen(true);
-      });
+        console.log(error.request);
+        console.log(error.message);
+      } else {
+        setSnackbar({ message: "Something went wrong", type: 'error' });
+        setSnackbarOpen(true);
+        console.log(error.message);
+      }
+    });
   };
 
   return (

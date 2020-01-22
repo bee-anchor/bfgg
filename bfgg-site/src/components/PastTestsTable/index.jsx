@@ -215,14 +215,25 @@ function PastTestsTable(props) {
       testClass: testClass,
       javaOpts,
     })
-        .then(() => {
-              setSnackbar({ message: 'Start test requested', type: 'success' });
-              setSnackbarOpen(true);
-            },
-            () => {
-              setSnackbar({ message: 'Failed to start test', type: 'error' });
-              setSnackbarOpen(true);
-            });
+    .then(() => {
+          setSnackbar({ message: 'Start test requested', type: 'success' });
+          setSnackbarOpen(true);
+    })
+    .catch((error) => {
+        if (error.response) {
+          setSnackbar({ message: error.response.data.error, type: 'error' });
+          setSnackbarOpen(true);
+        } else if (error.request) {
+          setSnackbar({ message: "Something went wrong", type: 'error' });
+          setSnackbarOpen(true);
+          console.log(error.request);
+          console.log(error.message);
+        } else {
+          setSnackbar({ message: "Something went wrong", type: 'error' });
+          setSnackbarOpen(true);
+          console.log(error.message);
+        }
+    });
   };
 
   useEffect(() => {
