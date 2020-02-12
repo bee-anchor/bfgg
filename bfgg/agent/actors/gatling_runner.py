@@ -35,17 +35,20 @@ class GatlingRunner(threading.Thread):
         self.logger.info(
             [f'{self.gatling_location}/bin/gatling.sh', '-nr', '-sf', f'{self.tests_location}/{self.project}/src', '-s',
              self.test, '-rf', self.results_folder], )
-        test_process = subprocess.Popen(
-            [f'{self.gatling_location}/bin/gatling.sh', '-nr', '-sf', f'{self.tests_location}/{self.project}/src', '-s',
-             self.test, '-rf', self.results_folder],
-            cwd=f'{self.tests_location}/{self.project}',
-            env=environ,
-            preexec_fn=os.setsid,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT)
-        self.test_process = test_process
-        return test_process
+        try:
+            test_process = subprocess.Popen(
+                [f'{self.gatling_location}/bin/gatling.sh', '-nr', '-sf', f'{self.tests_location}/{self.project}/src', '-s',
+                 self.test, '-rf', self.results_folder],
+                cwd=f'{self.tests_location}/{self.project}',
+                env=environ,
+                preexec_fn=os.setsid,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT)
+            self.test_process = test_process
+            return test_process
+        except FileNotFoundError:
+            self._handle_error(f"FileNotFoundError - {self.tests_location}/{self.project}: Check project requested")
 
     def _handle_process(self, test_process):
         executor = futures.ThreadPoolExecutor(max_workers=1)
