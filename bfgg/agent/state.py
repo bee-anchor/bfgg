@@ -29,7 +29,8 @@ class State:
                               if changes.cloned_repos is not None else self.__state_data.cloned_repos),
                 test_running=changes.test_running if changes.test_running is not None else self.__state_data.test_running,
                 test_id=changes.test_id if changes.test_id is not None else self.__state_data.test_id,
-                extra_info=changes.extra_info if changes.extra_info is not None else self.__state_data.extra_info,
+                # Reset extra_info on a new state change
+                extra_info=changes.extra_info if changes.extra_info is not None else "",
                 group=changes.group if changes.group is not None else self.__state_data.group
             )
 
