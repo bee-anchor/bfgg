@@ -54,7 +54,9 @@ def start():
     OUTGOING_QUEUE.put(OutgoingMessageGrouped(START_TEST, task, group=grp.encode('utf-8')))
     create_or_empty_results_folder(results_folder, grp)
     try:
+        logger.info(f"Attempting to save test details: {test_id}, {project}, {test}, {java_opts}")
         DYNAMO_DB.save_test_started(test_id, datetime.utcnow(), project, test, result.get('javaOpts', None))
+        logger.info("Saved details to dynamo")
     except Exception as e:
         logger.error(e)
         if hasattr(e, 'response'):
