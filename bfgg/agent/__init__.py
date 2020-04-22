@@ -17,13 +17,16 @@ def create_agent(identity=IDENTITY, controller_host=CONTROLLER_HOST, agent_messa
     # Can't be daemon, to keep process alive, and to allow it to spawn children
     incoming_message_handler = IncomingMessageHandler(context, controller_host, agent_messaging_port,
                                                       tests_location, results_folder, gatling_location)
+    incoming_message_handler.name = "IncomingMessageHandler"
     incoming_message_handler.start()
 
     outgoing_message_handler = OutgoingMessageHandler(context, controller_host, controller_messaging_port,
                                                       identity.encode('utf-8'))
+    outgoing_message_handler.name = "OutgoingMessageHandler"
     outgoing_message_handler.daemon = True
     outgoing_message_handler.start()
 
     status_handler = StatusHandler(STATE, STATE_QUEUE, OUTGOING_QUEUE)
+    status_handler.name = "StatusHandler"
     status_handler.daemon = True
     status_handler.start()

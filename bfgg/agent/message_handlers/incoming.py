@@ -45,6 +45,7 @@ class IncomingMessageHandler(threading.Thread):
             self.test_runner = GatlingRunner(
                 self.gatling_location, self.tests_location, self.results_folder, test_id, project, test, java_opts
             )
+            self.test_runner.name = f"GatlingRunner_{test}"
             self.test_runner.start()
         elif type == STOP_TEST and self.test_runner is not None:
             self.test_runner.stop_runner = True

@@ -72,6 +72,7 @@ class GatlingRunner(threading.Thread):
                                 test_id=self.test_id)
             self.logger.info(f"Test {self.test} started")
             self.log_follower = LogFollower(self.results_folder)
+            self.log_follower.name = f"LogFollower_{self.test}"
             self.log_follower.daemon = True
             self.log_follower.start()
         elif b"No tests to run for Gatling" in line:
