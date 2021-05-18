@@ -14,18 +14,18 @@ class TestStatusHandler:
         status=AgentStatus.TEST_RUNNING,
         cloned_repos=None,
         test_running="test",
-        test_id='1234',
+        test_id="1234",
         extra_info="interesting stuff",
-        group=None
+        group=None,
     )
 
     expected_new_state = StateData(
         status=AgentStatus.TEST_RUNNING,
         cloned_repos=set(),
         test_running="test",
-        test_id='1234',
+        test_id="1234",
         extra_info="interesting stuff",
-        group="ungrouped"
+        group="ungrouped",
     )
 
     expected_original_state = StateData(
@@ -34,16 +34,15 @@ class TestStatusHandler:
         test_running="",
         test_id="",
         extra_info="",
-        group="ungrouped"
+        group="ungrouped",
     )
 
     @fixture()
     def mocks(self, mocker):
-        mocker.patch('bfgg.agent.actors.status_handler.threading')
         outgoing_queue = Queue()
-        mocker.spy(outgoing_queue, 'put')
+        mocker.spy(outgoing_queue, "put")
         state = State(Lock())
-        mocker.spy(state, 'update')
+        mocker.spy(state, "update")
         yield outgoing_queue, state
 
     def test_handle_state_change_new_state(self, mocks):
@@ -61,7 +60,7 @@ class TestStatusHandler:
     def test_handle_state_change_no_state(self, mocks, mocker):
         outgoing_queue, state = mocks
         state_queue = mocker.MagicMock(spec=Queue)
-        state_queue.configure_mock(**{'get.side_effect': Empty})
+        state_queue.configure_mock(**{"get.side_effect": Empty})
 
         status_handler = StatusHandler(state, state_queue, outgoing_queue)
         status_handler._handle_state_change()

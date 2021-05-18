@@ -7,9 +7,10 @@ from bfgg.utils.logging import logger
 
 
 class OutgoingMessageHandler(threading.Thread):
-
-    def __init__(self, context: zmq.Context, controller_host: str, port: str, identity: bytes):
-        threading.Thread.__init__(self)
+    def __init__(
+        self, context: zmq.Context, controller_host: str, port: str, identity: bytes
+    ):
+        super().__init__()
         self.logger = logger
         self.context = context
         self.controller_host = controller_host
@@ -26,8 +27,12 @@ class OutgoingMessageHandler(threading.Thread):
 
     def _message_handler_loop(self):
         message: OutgoingMessage = OUTGOING_QUEUE.get()
-        self.handler.send_multipart([self.identity, STATE.group.encode('utf-8'), message.type, message.details])
+        self.handler.send_multipart(
+            [self.identity, STATE.group.encode("utf-8"), message.type, message.details]
+        )
 
     def exit_gracefully(self):
-        self.handler.send_multipart([self.identity, STATE.group.encode('utf-8'), BYE, b"goodbye"])
+        self.handler.send_multipart(
+            [self.identity, STATE.group.encode("utf-8"), BYE, b"goodbye"]
+        )
         self.logger.info("Agent terminated")

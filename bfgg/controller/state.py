@@ -23,12 +23,11 @@ class Agent:
             "cloned_repos": list(self.state.cloned_repos),
             "test_running": self.state.test_running,
             "extra_info": self.state.extra_info,
-            "group": self.state.group
+            "group": self.state.group,
         }
 
 
 class State:
-
     def __init__(self, lock: threading.Lock):
         self.lock = lock
         self._current_agents: Dict[bytes, Agent] = {}
@@ -40,7 +39,9 @@ class State:
 
     def connected_agents_by_group(self, group: str) -> List[bytes]:
         with self.lock:
-            return [a for a, s in self._current_agents.items() if s.state.group == group]
+            return [
+                a for a, s in self._current_agents.items() if s.state.group == group
+            ]
 
     def remove_agent(self, agent: bytes):
         with self.lock:
@@ -51,7 +52,9 @@ class State:
     def update_agent_state(self, agent: bytes, state: StateData):
         with self.lock:
             if agent not in self._current_agents:
-                self._current_agents[agent] = Agent(state, int(datetime.now().timestamp()))
+                self._current_agents[agent] = Agent(
+                    state, int(datetime.now().timestamp())
+                )
                 logger.info(f"{agent} connected, state: {state}")
             else:
                 self._current_agents[agent].update(state)
@@ -59,12 +62,21 @@ class State:
     def update_agent_status(self, agent: bytes, status: AgentStatus):
         with self.lock:
             if agent not in self._current_agents:
-                logger.warning(f"Tried to update status to {status.name} for unknown agent {agent}")
+                logger.warning(
+                    f"Tried to update status to {status.name} for unknown agent {agent}"
+                )
             else:
                 agent_state = self._current_agents[agent].state
-                self._current_agents[agent].update(StateData(status, agent_state.cloned_repos,
-                                                             agent_state.test_running, agent_state.test_id,
-                                                             agent_state.extra_info, agent_state.group))
+                self._current_agents[agent].update(
+                    StateData(
+                        status,
+                        agent_state.cloned_repos,
+                        agent_state.test_running,
+                        agent_state.test_id,
+                        agent_state.extra_info,
+                        agent_state.group,
+                    )
+                )
 
     def current_agents_state(self) -> Dict[bytes, StateData]:
         with self.lock:
@@ -80,11 +92,14 @@ class State:
 
     def current_agents_state_list(self) -> List[dict]:
         with self.lock:
-            return [{**a.to_dict(), **{'identity': i.decode('utf-8')}} for i, a in self._current_agents.items()]
+            return [
+                {**a.to_dict(), **{"identity": i.decode("utf-8")}}
+                for i, a in self._current_agents.items()
+            ]
 
     def current_groups(self) -> List[str]:
         groups = list(set([a.state.group for i, a in self._current_agents.items()]))
-        return list(filter(lambda i: i != '', groups))
+        return list(filter(lambda i: i != "", groups))
 
     def all_agents_finished(self):
         agents = self.current_agents_state()
@@ -108,5 +123,7 @@ class State:
                 # not heard from agent for over 20 seconds, something is wrong....
                 if current_time - info.last_heard_from > 20:
                     self._current_agents.pop(agent)
-                    logger.warning(f"Agent {agent.decode('utf-8')} has not been heard "
-                                   f"from for a while, removing from connected list")
+                    logger.warning(
+                        f"Agent {agent.decode('utf-8')} has not been heard "
+                        f"from for a while, removing from connected list"
+                    )

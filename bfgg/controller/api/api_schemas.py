@@ -10,9 +10,12 @@ class StartSchema(Schema):
 
 class CloneSchema(Schema):
     group = fields.Str(required=True)
-    repo = fields.Str(required=True, validate=validate.Regexp(
-        regex=r"(git@[\w\.]+)(:(\/\/)?)([\w\.@\:\/\-~]+)(\.git)(\/)?",
-        error="This does not look like a valid git repository")
+    repo = fields.Str(
+        required=True,
+        validate=validate.Regexp(
+            regex=r"(git@[\w\.]+)(:(\/\/)?)([\w\.@\:\/\-~]+)(\.git)(\/)?",
+            error="This does not look like a valid git repository",
+        ),
     )
 
 

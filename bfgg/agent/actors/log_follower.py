@@ -9,7 +9,6 @@ from bfgg.agent.model import OUTGOING_QUEUE, LOG_SEND_INTERVAL
 
 
 class LogFollower(threading.Thread):
-
     def __init__(self, results_folder: str):
         threading.Thread.__init__(self)
         self.logger = logger
@@ -19,8 +18,11 @@ class LogFollower(threading.Thread):
     def _get_current_logfile(self):
         while True:
             result_folders = os.listdir(self.results_folder)
-            folders = [os.path.join(self.results_folder, x) for x in result_folders if
-                       os.path.isdir(os.path.join(self.results_folder, x))]
+            folders = [
+                os.path.join(self.results_folder, x)
+                for x in result_folders
+                if os.path.isdir(os.path.join(self.results_folder, x))
+            ]
             try:
                 newest_folder = max(folders, key=os.path.getmtime)
                 newest_folder_mtime = os.path.getmtime(newest_folder)
@@ -47,7 +49,7 @@ class LogFollower(threading.Thread):
             sleep(LOG_SEND_INTERVAL)
             logs = log_file.read()
             if logs:
-                OUTGOING_QUEUE.put(OutgoingMessage(LOG, logs.encode('utf-8')))
+                OUTGOING_QUEUE.put(OutgoingMessage(LOG, logs.encode("utf-8")))
                 self.logger.debug("Log queued")
             if self.stop_thread:
                 self.logger.debug("Stopping log follower")

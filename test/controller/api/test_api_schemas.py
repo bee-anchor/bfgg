@@ -6,93 +6,86 @@ from bfgg.controller.api.api_schemas import StartSchema, CloneSchema
 
 def test_start_schema_valid_input():
     try:
-        StartSchema().load({
-            'project': 'my-project',
-            'testClass': 'test-class',
-            'javaOpts': 'java-opts',
-            'group': 'group'
-        })
+        StartSchema().load(
+            {
+                "project": "my-project",
+                "testClass": "test-class",
+                "javaOpts": "java-opts",
+                "group": "group",
+            }
+        )
     except ValidationError:
-        pytest.fail('Validation unsuccessful, test failed')
+        pytest.fail("Validation unsuccessful, test failed")
 
 
 def test_start_schema_valid_input_1():
     try:
-        StartSchema().load({
-            'project': 'my-project',
-            'testClass': 'test-class',
-            'group': 'group'
-        })
+        StartSchema().load(
+            {"project": "my-project", "testClass": "test-class", "group": "group"}
+        )
     except ValidationError:
-        pytest.fail('Validation unsuccessful, test failed')
+        pytest.fail("Validation unsuccessful, test failed")
 
 
 def test_start_schema_invalid_input():
     with pytest.raises(ValidationError):
-        StartSchema().load({
-            'project': 'my-project',
-            'javaOpts': 'java-opts'
-        })
+        StartSchema().load({"project": "my-project", "javaOpts": "java-opts"})
 
 
 def test_start_schema_invalid_input_1():
     with pytest.raises(ValidationError):
-        StartSchema().load({
-            'project1': 'my-project',
-            'testClass': 'test-class',
-            'javaOpts': 'java-opts'
-        })
+        StartSchema().load(
+            {
+                "project1": "my-project",
+                "testClass": "test-class",
+                "javaOpts": "java-opts",
+            }
+        )
 
 
 def test_clone_schema_valid_input():
     try:
-        CloneSchema().load({
-            'repo': 'git@github.com:bee-anchor/bfgg.git',
-            'group': 'group'
-        })
+        CloneSchema().load(
+            {"repo": "git@github.com:bee-anchor/bfgg.git", "group": "group"}
+        )
     except ValidationError:
-        pytest.fail('Validation unsuccessful, test failed')
+        pytest.fail("Validation unsuccessful, test failed")
 
 
 def test_clone_schema_valid_input_1():
     try:
-        CloneSchema().load({
-            'repo': 'git@github.com:bee-anchor/bfgg.git',
-            'group': 'group'
-        })
+        CloneSchema().load(
+            {"repo": "git@github.com:bee-anchor/bfgg.git", "group": "group"}
+        )
     except ValidationError:
-        pytest.fail('Validation unsuccessful, test failed')
+        pytest.fail("Validation unsuccessful, test failed")
 
 
 def test_clone_schema_valid_input_2():
     try:
-        CloneSchema().load({
-            'repo': 'git@github.com:bee-anchor/bfgg.git/',
-            'group': 'group'
-        })
+        CloneSchema().load(
+            {"repo": "git@github.com:bee-anchor/bfgg.git/", "group": "group"}
+        )
     except ValidationError:
-        pytest.fail('Validation unsuccessful, test failed')
+        pytest.fail("Validation unsuccessful, test failed")
 
 
 def test_clone_schema_invalid_input():
     with pytest.raises(ValidationError):
-        CloneSchema().load({
-            'repo1': 'git@github.com:bee-anchor/bfgg.git',
-            'group': 'group'
-        })
+        CloneSchema().load(
+            {"repo1": "git@github.com:bee-anchor/bfgg.git", "group": "group"}
+        )
 
 
 def test_clone_schema_invalid_input_1():
     with pytest.raises(ValidationError):
-        CloneSchema().load({
-            'repo': 'git@github.com:bee-anchor/bfgg.gi',
-            'group': 'group'
-        })
+        CloneSchema().load(
+            {"repo": "git@github.com:bee-anchor/bfgg.gi", "group": "group"}
+        )
 
 
 def test_clone_schema_invalid_input_2():
     with pytest.raises(ValidationError):
-        CloneSchema().load({
-            'repo': 'it@github.com:bee-anchor/bfgg.git',
-            'group': 'group'
-        })
+        CloneSchema().load(
+            {"repo": "it@github.com:bee-anchor/bfgg.git", "group": "group"}
+        )

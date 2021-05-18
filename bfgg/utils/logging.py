@@ -10,12 +10,12 @@ def new_logger():
     log.setLevel(logging.DEBUG)
     log.propagate = False
     formatter = logging.Formatter(
-        fmt='%(asctime)s|%(levelname)s|%(module)s.%(funcName)s#%(lineno)d|%(threadName)s|%(message)s',
-        datefmt='%m/%d/%Y %I:%M:%S'
+        fmt="%(asctime)s|%(levelname)s|%(module)s.%(funcName)s#%(lineno)d|%(threadName)s|%(message)s",
+        datefmt="%m/%d/%Y %I:%M:%S",
     )
     if not len(log.handlers):
         ch = logging.StreamHandler()
-        ch.setLevel(os.getenv('LOG_LEVEL'))
+        ch.setLevel(os.getenv("LOG_LEVEL"))
         ch.setFormatter(formatter)
         log.addHandler(ch)
     return log

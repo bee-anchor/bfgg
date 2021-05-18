@@ -9,7 +9,7 @@ from bfgg.utils.logging import logger
 
 class StatusHandler(threading.Thread):
     def __init__(self, state: State, state_queue: Queue, outgoing_queue: Queue):
-        threading.Thread.__init__(self)
+        super().__init__()
         self.logger = logger
         self.state = state
         self.state_queue = state_queue
@@ -26,4 +26,6 @@ class StatusHandler(threading.Thread):
             self.state.update(state_changes)
         except Empty:
             pass
-        self.outgoing_queue.put(OutgoingMessage(STATUS, pickle.dumps(self.state.state_data)))
+        self.outgoing_queue.put(
+            OutgoingMessage(STATUS, pickle.dumps(self.state.state_data))
+        )

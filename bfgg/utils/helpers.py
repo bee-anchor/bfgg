@@ -14,4 +14,4 @@ def create_or_empty_results_folder(folder: str, group: str):
 
 
 def ip_to_log_filename(ip: str):
-    return ip.replace('.', '_') + '.log'
+    return ip.replace(".", "_") + ".log"

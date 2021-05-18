@@ -11,13 +11,13 @@ logger = logger
 
 load_dotenv()
 
-CONTROLLER_HOST = os.getenv('CONTROLLER_HOST')
-AGENT_MESSAGING_PORT = os.getenv('AGENT_MESSAGING_PORT')
-CONTROLLER_MESSAGING_PORT = os.getenv('CONTROLLER_MESSAGING_PORT')
-TESTS_LOCATION = os.getenv('TESTS_LOCATION')
-RESULTS_FOLDER = os.getenv('RESULTS_FOLDER')
-GATLING_LOCATION = os.getenv('GATLING_LOCATION')
-LOG_SEND_INTERVAL = int(os.getenv('LOG_SEND_INTERVAL'))
+CONTROLLER_HOST = os.getenv("CONTROLLER_HOST")
+AGENT_MESSAGING_PORT = os.getenv("AGENT_MESSAGING_PORT")
+CONTROLLER_MESSAGING_PORT = os.getenv("CONTROLLER_MESSAGING_PORT")
+TESTS_LOCATION = os.getenv("TESTS_LOCATION")
+RESULTS_FOLDER = os.getenv("RESULTS_FOLDER")
+GATLING_LOCATION = os.getenv("GATLING_LOCATION")
+LOG_SEND_INTERVAL = int(os.getenv("LOG_SEND_INTERVAL"))
 
 
 def get_identity(controller_host):
@@ -41,6 +41,6 @@ def ensure_results_folder():
 OUTGOING_QUEUE = Queue()
 STATE_QUEUE = Queue()
 
-IDENTITY = os.getenv('AGENT_IDENTITY', default=get_identity(CONTROLLER_HOST))
+IDENTITY = os.getenv("AGENT_IDENTITY", default=get_identity(CONTROLLER_HOST))
 STATE = State(threading.Lock())
 handle_state_change = handle_state_change_partial(STATE_QUEUE, OUTGOING_QUEUE)

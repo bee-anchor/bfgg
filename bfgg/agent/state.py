@@ -16,22 +16,34 @@ class StateData:
 
 
 class State:
-
     def __init__(self, lock: threading.Lock):
         self.lock = lock
-        self.__state_data = StateData(AgentStatus.AVAILABLE, set(), "", "", "", "ungrouped")
+        self.__state_data = StateData(
+            AgentStatus.AVAILABLE, set(), "", "", "", "ungrouped"
+        )
 
     def update(self, changes: StateData):
         with self.lock:
             self.__state_data = StateData(
-                status=changes.status if changes.status is not None else self.__state_data.status,
-                cloned_repos=(self.__state_data.cloned_repos.union(changes.cloned_repos)
-                              if changes.cloned_repos is not None else self.__state_data.cloned_repos),
-                test_running=changes.test_running if changes.test_running is not None else self.__state_data.test_running,
-                test_id=changes.test_id if changes.test_id is not None else self.__state_data.test_id,
+                status=changes.status
+                if changes.status is not None
+                else self.__state_data.status,
+                cloned_repos=(
+                    self.__state_data.cloned_repos.union(changes.cloned_repos)
+                    if changes.cloned_repos is not None
+                    else self.__state_data.cloned_repos
+                ),
+                test_running=changes.test_running
+                if changes.test_running is not None
+                else self.__state_data.test_running,
+                test_id=changes.test_id
+                if changes.test_id is not None
+                else self.__state_data.test_id,
                 # Reset extra_info on a new state change
                 extra_info=changes.extra_info if changes.extra_info is not None else "",
-                group=changes.group if changes.group is not None else self.__state_data.group
+                group=changes.group
+                if changes.group is not None
+                else self.__state_data.group,
             )
 
     @property
