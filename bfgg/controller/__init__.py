@@ -1,17 +1,18 @@
 from queue import Queue
 from threading import Lock
-from zmq import Context
 
-from bfgg.controller.actors.dynamodb_resource import DynamoTableInteractor
-from bfgg.controller.message_handlers.incoming import IncomingMessageHandler
-from bfgg.controller.message_handlers.outgoing import OutgoingMessageHandler
-from bfgg.aws import DynamoTable, S3Bucket
-from bfgg.config import config, Config
 from flask import Flask
 from flask_cors import CORS
-from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from prometheus_client import make_wsgi_app
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
+from zmq import Context
+
+from bfgg.aws import DynamoTable, S3Bucket
+from bfgg.config import Config, config
+from bfgg.controller.actors.dynamodb_resource import DynamoTableInteractor
 from bfgg.controller.api import api
+from bfgg.controller.message_handlers.incoming import IncomingMessageHandler
+from bfgg.controller.message_handlers.outgoing import OutgoingMessageHandler
 from bfgg.controller.state import State
 
 __lock = Lock()

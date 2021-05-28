@@ -1,9 +1,8 @@
 from dataclasses import dataclass
 from queue import Queue
-
-from pytest import fixture
 from unittest import mock
 
+from pytest import fixture
 from zmq import Context
 
 from bfgg.agent import State

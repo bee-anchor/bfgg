@@ -1,11 +1,13 @@
 from queue import Queue
 from threading import Thread
-from zmq import Context, DEALER, IDENTITY
-from bfgg.utils.logging import logger
-from bfgg.utils.messages import CLONE, START_TEST, STOP_TEST, GROUP
+
+from zmq import DEALER, IDENTITY, Context
+
 from bfgg.agent.actors.gatling_runner import GatlingRunner
 from bfgg.agent.actors.git_actions import clone_repo
 from bfgg.agent.utils import AgentUtils
+from bfgg.utils.logging import logger
+from bfgg.utils.messages import CLONE, GROUP, START_TEST, STOP_TEST
 
 
 class IncomingMessageHandler(Thread):

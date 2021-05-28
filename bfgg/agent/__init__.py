@@ -1,12 +1,14 @@
-from zmq import Context
-from threading import Lock
 from queue import Queue
-from bfgg.config import config, Config
-from bfgg.agent.state import State
-from bfgg.agent.utils import AgentUtils, get_identity
+from threading import Lock
+
+from zmq import Context
+
+from bfgg.agent.actors.status_handler import StatusHandler
 from bfgg.agent.message_handlers.incoming import IncomingMessageHandler
 from bfgg.agent.message_handlers.outgoing import OutgoingMessageHandler
-from bfgg.agent.actors.status_handler import StatusHandler
+from bfgg.agent.state import State
+from bfgg.agent.utils import AgentUtils, get_identity
+from bfgg.config import Config, config
 
 __context = Context()
 __state = State(Lock())

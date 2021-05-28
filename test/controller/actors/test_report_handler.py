@@ -3,8 +3,8 @@ from unittest.mock import call
 
 from pytest import fixture
 
-from bfgg.controller.actors.report_handler import ReportHandler
 from bfgg.aws import S3Bucket
+from bfgg.controller.actors.report_handler import ReportHandler
 
 
 class TestReportHandler:

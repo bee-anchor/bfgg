@@ -1,5 +1,6 @@
-import subprocess
 import os
+import subprocess
+
 from bfgg.agent.utils import AgentUtils
 from bfgg.utils.agentstatus import AgentStatus
 from bfgg.utils.logging import logger

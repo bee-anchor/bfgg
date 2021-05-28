@@ -1,6 +1,7 @@
+from threading import Lock
+
 from bfgg.agent.state import State, StateData
 from bfgg.utils.agentstatus import AgentStatus
-from threading import Lock
 
 
 def test_state_update():

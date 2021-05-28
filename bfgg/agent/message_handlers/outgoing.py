@@ -1,12 +1,12 @@
+import atexit
 import threading
 from queue import Queue
 
-from zmq import Context, PUSH
-import atexit
+from zmq import PUSH, Context
 
 from bfgg.agent import State
-from bfgg.utils.messages import OutgoingMessage, BYE
 from bfgg.utils.logging import logger
+from bfgg.utils.messages import BYE, OutgoingMessage
 
 
 class OutgoingMessageHandler(threading.Thread):

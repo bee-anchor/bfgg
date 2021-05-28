@@ -1,11 +1,13 @@
-from typing import Union
 import threading
-import zmq
 import time
 from queue import Empty
-from bfgg.utils.messages import OutgoingMessageGrouped, OutgoingMessageTargeted
+from typing import Union
+
+import zmq
+
 from bfgg.controller.state import State
 from bfgg.utils.logging import logger
+from bfgg.utils.messages import OutgoingMessageGrouped, OutgoingMessageTargeted
 
 
 class OutgoingMessageHandler(threading.Thread):

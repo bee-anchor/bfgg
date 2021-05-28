@@ -1,5 +1,7 @@
 import os
-from prometheus_client import Histogram, Counter
+
+from prometheus_client import Counter, Histogram
+
 from bfgg.utils.helpers import ip_to_log_filename
 from bfgg.utils.logging import logger
 

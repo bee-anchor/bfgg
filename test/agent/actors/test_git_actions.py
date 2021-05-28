@@ -1,5 +1,6 @@
-from pytest import fixture
 from unittest.mock import call
+
+from pytest import fixture
 
 from bfgg.agent import AgentUtils
 from bfgg.agent.actors.git_actions import clone_repo

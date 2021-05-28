@@ -1,9 +1,10 @@
-from pytest import fixture
-from unittest.mock import call
 from queue import Queue
-from bfgg.utils.messages import OutgoingMessageGrouped
+from unittest.mock import call
+
+from pytest import fixture
 
 from bfgg.controller.message_handlers.outgoing import OutgoingMessageHandler
+from bfgg.utils.messages import OutgoingMessageGrouped
 
 
 class TestOutgoingMessageHandler:

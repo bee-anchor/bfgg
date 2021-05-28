@@ -1,11 +1,13 @@
-from pytest import fixture
-from queue import Empty, Queue
 import pickle
+from queue import Empty, Queue
 from threading import Lock
+
+from pytest import fixture
+
 from bfgg.agent.actors.status_handler import StatusHandler
+from bfgg.agent.state import State, StateData
 from bfgg.utils.agentstatus import AgentStatus
-from bfgg.agent.state import StateData, State
-from bfgg.utils.messages import OutgoingMessage, STATUS
+from bfgg.utils.messages import STATUS, OutgoingMessage
 
 
 class TestStatusHandler:

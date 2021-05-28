@@ -1,9 +1,10 @@
 import threading
-from typing import Dict, List
 from dataclasses import dataclass
 from datetime import datetime
-from bfgg.utils.agentstatus import AgentStatus
+from typing import Dict, List
+
 from bfgg.agent.state import StateData
+from bfgg.utils.agentstatus import AgentStatus
 from bfgg.utils.logging import logger
 
 

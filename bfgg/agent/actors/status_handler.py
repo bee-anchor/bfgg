@@ -1,10 +1,10 @@
-import threading
-from queue import Queue
-from queue import Empty
 import pickle
-from bfgg.agent.state import StateData, State
-from bfgg.utils.messages import OutgoingMessage, STATUS
+import threading
+from queue import Empty, Queue
+
+from bfgg.agent.state import State, StateData
 from bfgg.utils.logging import logger
+from bfgg.utils.messages import STATUS, OutgoingMessage
 
 
 class StatusHandler(threading.Thread):

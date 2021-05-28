@@ -1,11 +1,12 @@
 import json
-from unittest import mock
 from dataclasses import dataclass
 from queue import Queue
+from unittest import mock
 
 from pytest import fixture
-from bfgg.controller import create_app, State, DynamoTableInteractor
-from bfgg.utils.messages import OutgoingMessageGrouped, CLONE, START_TEST, STOP_TEST
+
+from bfgg.controller import DynamoTableInteractor, State, create_app
+from bfgg.utils.messages import CLONE, START_TEST, STOP_TEST, OutgoingMessageGrouped
 
 
 @dataclass()

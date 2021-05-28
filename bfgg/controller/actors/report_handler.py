@@ -2,8 +2,9 @@ import os
 import shutil
 import subprocess
 from datetime import datetime
-from bfgg.utils.logging import logger
+
 from bfgg.aws import S3Bucket
+from bfgg.utils.logging import logger
 
 
 class ReportHandler:

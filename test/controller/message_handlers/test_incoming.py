@@ -1,15 +1,15 @@
 import pickle
 from dataclasses import dataclass
 from unittest import mock
-from pytest import fixture
 
+from pytest import fixture
 from zmq import Context
 
 from bfgg.aws import S3Bucket
-from bfgg.controller import State, DynamoTableInteractor
+from bfgg.controller import DynamoTableInteractor, State
 from bfgg.controller.message_handlers.incoming import IncomingMessageHandler
-from bfgg.utils.messages import LOG, STATUS, BYE, START_TEST, FINISHED_TEST
 from bfgg.utils.agentstatus import AgentStatus
+from bfgg.utils.messages import BYE, FINISHED_TEST, LOG, START_TEST, STATUS
 
 port = 123
 results_folder = "/results"

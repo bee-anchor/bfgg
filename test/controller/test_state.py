@@ -1,8 +1,10 @@
-from pytest import fixture
 import threading
 from datetime import datetime
-from bfgg.controller.state import Agent, State
+
+from pytest import fixture
+
 from bfgg.agent.state import StateData
+from bfgg.controller.state import Agent, State
 from bfgg.utils.agentstatus import AgentStatus
 
 

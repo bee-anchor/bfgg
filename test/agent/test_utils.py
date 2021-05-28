@@ -1,9 +1,11 @@
 from queue import Queue
+
 from pytest import fixture
-from bfgg.utils.agentstatus import AgentStatus
-from bfgg.agent.utils import AgentUtils, get_identity
+
 from bfgg.agent.state import StateData
-from bfgg.utils.messages import OutgoingMessage, FINISHED_TEST
+from bfgg.agent.utils import AgentUtils, get_identity
+from bfgg.utils.agentstatus import AgentStatus
+from bfgg.utils.messages import FINISHED_TEST, OutgoingMessage
 
 
 def test_get_identity(mocker):

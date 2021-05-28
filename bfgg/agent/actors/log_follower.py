@@ -1,11 +1,13 @@
-from threading import Thread
 import os
 from datetime import datetime
 from queue import Queue
+from threading import Thread
 from time import sleep
+
 from pygtail import Pygtail
-from bfgg.utils.messages import OutgoingMessage, LOG
+
 from bfgg.utils.logging import logger
+from bfgg.utils.messages import LOG, OutgoingMessage
 
 
 class LogFollower(Thread):

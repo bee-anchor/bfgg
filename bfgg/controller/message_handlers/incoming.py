@@ -1,16 +1,18 @@
-import threading
-import zmq
-from datetime import datetime
-from bfgg.controller.state import State
 import pickle
-from bfgg.utils.messages import LOG, STATUS, BYE, START_TEST, FINISHED_TEST
-from bfgg.utils.logging import logger
-from bfgg.controller.actors.report_handler import ReportHandler
-from bfgg.controller.actors.metrics_handler import MetricsHandler
-from bfgg.controller.actors.dynamodb_resource import DynamoTableInteractor
-from bfgg.utils.helpers import create_or_empty_results_folder
-from bfgg.utils.agentstatus import AgentStatus
+import threading
+from datetime import datetime
+
+import zmq
+
 from bfgg.aws import S3Bucket
+from bfgg.controller.actors.dynamodb_resource import DynamoTableInteractor
+from bfgg.controller.actors.metrics_handler import MetricsHandler
+from bfgg.controller.actors.report_handler import ReportHandler
+from bfgg.controller.state import State
+from bfgg.utils.agentstatus import AgentStatus
+from bfgg.utils.helpers import create_or_empty_results_folder
+from bfgg.utils.logging import logger
+from bfgg.utils.messages import BYE, FINISHED_TEST, LOG, START_TEST, STATUS
 
 
 class IncomingMessageHandler(threading.Thread):

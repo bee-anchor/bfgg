@@ -1,4 +1,4 @@
-from bfgg.utils.helpers import ip_to_log_filename, create_or_empty_results_folder
+from bfgg.utils.helpers import create_or_empty_results_folder, ip_to_log_filename
 
 
 def test_ip_to_log_filename():

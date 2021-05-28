@@ -1,9 +1,9 @@
+import os
+import signal
+import subprocess
+from concurrent import futures
 from queue import Queue
 from threading import Thread
-import os
-from concurrent import futures
-import subprocess
-import signal
 
 from bfgg.agent import AgentUtils
 from bfgg.agent.actors.log_follower import LogFollower

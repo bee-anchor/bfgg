@@ -1,12 +1,12 @@
+from dataclasses import dataclass
 from queue import Queue
 from unittest import mock
-from dataclasses import dataclass
 
 from pytest import fixture
 
-from bfgg.agent.actors.gatling_runner import GatlingRunner, subprocess, signal
-from bfgg.utils.agentstatus import AgentStatus
+from bfgg.agent.actors.gatling_runner import GatlingRunner, signal, subprocess
 from bfgg.agent.utils import AgentUtils
+from bfgg.utils.agentstatus import AgentStatus
 
 gatling_location = "/gatling"
 tests_location = "/tests"

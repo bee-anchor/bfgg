@@ -1,11 +1,12 @@
 import os
 import socket
 from queue import Queue
-from bfgg.utils.logging import logger
-from bfgg.utils.messages import OutgoingMessage, START_TEST, FINISHED_TEST
-from bfgg.utils.agentstatus import AgentStatus
+
 from bfgg.agent.state import StateData
 from bfgg.config import Config
+from bfgg.utils.agentstatus import AgentStatus
+from bfgg.utils.logging import logger
+from bfgg.utils.messages import FINISHED_TEST, START_TEST, OutgoingMessage
 
 
 def get_identity(controller_host):
