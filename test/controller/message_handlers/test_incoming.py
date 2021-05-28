@@ -1,184 +1,188 @@
 import pickle
+from dataclasses import dataclass
+from unittest import mock
+from pytest import fixture
 
+from zmq import Context
+
+from bfgg.aws import S3Bucket
+from bfgg.controller import State, DynamoTableInteractor
 from bfgg.controller.message_handlers.incoming import IncomingMessageHandler
 from bfgg.utils.messages import LOG, STATUS, BYE, START_TEST, FINISHED_TEST
 from bfgg.utils.agentstatus import AgentStatus
 
-port = "port"
+port = 123
 results_folder = "/results"
 gatling_location = "/gatling"
-s3_bucket = "bucket"
-s3_region = "region"
 
 
-def setup_mocks(mocker, return_value):
-    state_mock = mocker.patch("bfgg.controller.message_handlers.incoming.State")
-    zmq_mock = mocker.patch(
-        "bfgg.controller.message_handlers.incoming.zmq",
-        **{f"socket.return_value.recv_multipart.return_value": return_value},
-    )
-    metrics_mock = mocker.patch(
-        "bfgg.controller.message_handlers.incoming.MetricsHandler"
-    )
-
-    return state_mock, zmq_mock, metrics_mock
-
-
-def test_controller_message_handler_loop_log(mocker):
-    state_mock, zmq_mock, metrics_mock = setup_mocks(
-        mocker, (b"Identity", b"group", LOG, b"Message")
-    )
-
-    message_handler = IncomingMessageHandler(
-        zmq_mock,
-        port,
-        results_folder,
-        state_mock,
-        gatling_location,
-        s3_bucket,
-        s3_region,
-    )
-    message_handler._message_handler_loop()
-
-    metrics_mock.return_value.handle_log.assert_called_once_with(
-        b"Identity", b"Message", b"group"
-    )
+@dataclass
+class Mocks:
+    metrics: mock.MagicMock
+    context: mock.MagicMock
+    state: mock.MagicMock
+    dynamodb: mock.MagicMock
+    s3_bucket: mock.MagicMock
+    logger: mock.MagicMock
+    report_handler: mock.MagicMock
+    create_or_empty_folder: mock.MagicMock
 
 
-def test_controller_message_handler_loop_status(mocker):
-    message = pickle.dumps(
-        {
-            "status": AgentStatus.TEST_STOPPED,
-            "cloned_repos": {"a", "b"},
-            "test_running": "Test",
-            "extra_info": "interesting stuff",
-        }
-    )
-    state_mock, zmq_mock, _ = setup_mocks(
-        mocker, (b"Identity", b"group", STATUS, message)
-    )
+class TestIncomingMessageHandler:
+    @fixture
+    def setup(self, mocker):
+        metrics = mocker.patch(
+            "bfgg.controller.message_handlers.incoming.MetricsHandler"
+        )
+        logger = mocker.patch("bfgg.controller.message_handlers.incoming.logger")
+        report_handler = mocker.patch(
+            "bfgg.controller.message_handlers.incoming.ReportHandler"
+        )
+        create_or_empty_folder = mocker.patch(
+            "bfgg.controller.message_handlers.incoming.create_or_empty_results_folder"
+        )
+        context = mock.create_autospec(Context)
+        state = mock.create_autospec(State)
+        s3_bucket = mock.create_autospec(S3Bucket)
+        dynamodb = mock.create_autospec(DynamoTableInteractor)
+        incoming_message_handler = IncomingMessageHandler(
+            context,
+            port,
+            results_folder,
+            state,
+            gatling_location,
+            s3_bucket,
+            dynamodb,
+        )
+        yield incoming_message_handler, Mocks(
+            metrics,
+            context,
+            state,
+            dynamodb,
+            s3_bucket,
+            logger,
+            report_handler,
+            create_or_empty_folder,
+        )
 
-    message_handler = IncomingMessageHandler(
-        zmq_mock,
-        port,
-        results_folder,
-        state_mock,
-        gatling_location,
-        s3_bucket,
-        s3_region,
-    )
-    message_handler._message_handler_loop()
+    def test_controller_message_handler_loop_log(self, setup):
+        incoming_message_handler, mocks = setup
+        mocks.context.socket.return_value.recv_multipart.return_value = (
+            b"Identity",
+            b"group",
+            LOG,
+            b"Message",
+        )
 
-    state_mock.update_agent_state.assert_called_once_with(
-        b"Identity", pickle.loads(message)
-    )
+        incoming_message_handler._message_handler_loop()
 
+        mocks.metrics.return_value.handle_log.assert_called_once_with(
+            b"Identity", b"Message", b"group"
+        )
 
-def test_controller_message_handler_loop_bye(mocker):
-    state_mock, zmq_mock, _ = setup_mocks(mocker, (b"Identity", b"group", BYE, b"Bye"))
+    def test_controller_message_handler_loop_status(self, setup):
+        incoming_message_handler, mocks = setup
+        message = pickle.dumps(
+            {
+                "status": AgentStatus.TEST_STOPPED,
+                "cloned_repos": {"a", "b"},
+                "test_running": "Test",
+                "extra_info": "interesting stuff",
+            }
+        )
+        mocks.context.socket.return_value.recv_multipart.return_value = (
+            b"Identity",
+            b"group",
+            STATUS,
+            message,
+        )
 
-    message_handler = IncomingMessageHandler(
-        zmq_mock,
-        port,
-        results_folder,
-        state_mock,
-        gatling_location,
-        s3_bucket,
-        s3_region,
-    )
-    message_handler._message_handler_loop()
+        incoming_message_handler._message_handler_loop()
 
-    state_mock.remove_agent.assert_called_once_with(b"Identity")
+        mocks.state.update_agent_state.assert_called_once_with(
+            b"Identity", pickle.loads(message)
+        )
 
+    def test_controller_message_handler_loop_bye(self, setup):
+        incoming_message_handler, mocks = setup
+        mocks.context.socket.return_value.recv_multipart.return_value = (
+            b"Identity",
+            b"group",
+            BYE,
+            b"Bye",
+        )
 
-def test_controller_message_handler_loop_start(mocker):
-    state_mock, zmq_mock, _ = setup_mocks(
-        mocker, (b"Identity", b"group", START_TEST, b"Start")
-    )
-    create_or_empty_folder_mock = mocker.patch(
-        "bfgg.controller.message_handlers.incoming.create_or_empty_results_folder"
-    )
+        incoming_message_handler._message_handler_loop()
 
-    message_handler = IncomingMessageHandler(
-        zmq_mock,
-        port,
-        results_folder,
-        state_mock,
-        gatling_location,
-        s3_bucket,
-        s3_region,
-    )
-    message_handler._message_handler_loop()
+        mocks.state.remove_agent.assert_called_once_with(b"Identity")
 
-    create_or_empty_folder_mock.assert_called_once_with(results_folder, "group")
+    def test_controller_message_handler_loop_start(self, setup):
+        incoming_message_handler, mocks = setup
+        mocks.context.socket.return_value.recv_multipart.return_value = (
+            b"Identity",
+            b"group",
+            START_TEST,
+            b"Start",
+        )
 
+        incoming_message_handler._message_handler_loop()
 
-def test_controller_message_handler_loop_finished_all_agents(mocker):
-    state_mock, zmq_mock, _ = setup_mocks(
-        mocker, (b"Identity", b"group", FINISHED_TEST, b"1234")
-    )
-    state_mock.all_agents_finished_in_group.return_value = True
-    logging_mock = mocker.patch("bfgg.controller.message_handlers.incoming.logger")
-    report_handler_mock = mocker.patch(
-        "bfgg.controller.message_handlers.incoming.ReportHandler"
-    )
-    report_handler_mock.return_value.run.return_value = "results.url"
-    dynamodb_mock = mocker.patch("bfgg.controller.message_handlers.incoming.DYNAMO_DB")
-    datetime_mock = mocker.patch("bfgg.controller.message_handlers.incoming.datetime")
-    datetime_mock.utcnow.return_value = "datetime.utcnow"
+        mocks.create_or_empty_folder.assert_called_once_with(results_folder, "group")
 
-    message_handler = IncomingMessageHandler(
-        zmq_mock,
-        port,
-        results_folder,
-        state_mock,
-        gatling_location,
-        s3_bucket,
-        s3_region,
-    )
-    message_handler._message_handler_loop()
+    def test_controller_message_handler_loop_finished_all_agents(self, setup, mocker):
+        incoming_message_handler, mocks = setup
+        mocks.context.socket.return_value.recv_multipart.return_value = (
+            b"Identity",
+            b"group",
+            FINISHED_TEST,
+            b"1234",
+        )
+        mocks.state.all_agents_finished_in_group.return_value = True
+        mocks.report_handler.return_value.run.return_value = "results.url"
+        datetime_mock = mocker.patch(
+            "bfgg.controller.message_handlers.incoming.datetime"
+        )
+        datetime_mock.utcnow.return_value = "datetime.utcnow"
 
-    logging_mock.info.assert_has_calls(
-        [
-            mocker.call("Identity finished test"),
-            mocker.call("Generating report for group group"),
-        ]
-    )
-    state_mock.update_agent_status.assert_called_once_with(
-        b"Identity", AgentStatus.TEST_FINISHED
-    )
-    report_handler_mock.assert_called_once_with(
-        results_folder, gatling_location, s3_bucket, s3_region, "group"
-    )
-    report_handler_mock.return_value.run.assert_called_once()
-    dynamodb_mock.update_test_ended.assert_called_with(
-        "1234", "datetime.utcnow", "results.url"
-    )
+        incoming_message_handler._message_handler_loop()
 
+        mocks.logger.info.assert_has_calls(
+            [
+                mocker.call("Identity finished test"),
+                mocker.call("Generating report for group group"),
+            ]
+        )
+        mocks.state.update_agent_status.assert_called_once_with(
+            b"Identity", AgentStatus.TEST_FINISHED
+        )
+        mocks.report_handler.assert_called_once_with(
+            results_folder, gatling_location, mocks.s3_bucket, "group"
+        )
+        mocks.report_handler.return_value.run.assert_called_once()
+        mocks.dynamodb.update_test_ended.assert_called_with(
+            "1234", "datetime.utcnow", "results.url"
+        )
 
-def test_controller_message_handler_loop_finished_not_all_agents(mocker):
-    state_mock, zmq_mock, _ = setup_mocks(
-        mocker, (b"Identity", b"group", FINISHED_TEST, b"Finish")
-    )
-    state_mock.all_agents_finished_in_group.return_value = False
-    logging_mock = mocker.patch("bfgg.controller.message_handlers.incoming.logger")
-    report_handler_mock = mocker.patch(
-        "bfgg.controller.message_handlers.incoming.ReportHandler"
-    )
+    def test_controller_message_handler_loop_finished_not_all_agents(
+        self, setup, mocker
+    ):
+        incoming_message_handler, mocks = setup
+        mocks.context.socket.return_value.recv_multipart.return_value = (
+            b"Identity",
+            b"group",
+            FINISHED_TEST,
+            b"Finish",
+        )
 
-    message_handler = IncomingMessageHandler(
-        zmq_mock,
-        port,
-        results_folder,
-        state_mock,
-        gatling_location,
-        s3_bucket,
-        s3_region,
-    )
-    message_handler._message_handler_loop()
+        mocks.state.all_agents_finished_in_group.return_value = False
+        report_handler_mock = mocker.patch(
+            "bfgg.controller.message_handlers.incoming.ReportHandler"
+        )
 
-    logging_mock.info.assert_called_once_with("Identity finished test")
-    state_mock.update_agent_status.assert_called_once_with(
-        b"Identity", AgentStatus.TEST_FINISHED
-    )
-    report_handler_mock.assert_not_called()
+        incoming_message_handler._message_handler_loop()
+
+        mocks.logger.info.assert_called_once_with("Identity finished test")
+        mocks.state.update_agent_status.assert_called_once_with(
+            b"Identity", AgentStatus.TEST_FINISHED
+        )
+        report_handler_mock.assert_not_called()

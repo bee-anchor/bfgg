@@ -1,11 +1,11 @@
-import boto3
 from datetime import datetime
 
+from bfgg.aws import DynamoTable
 
-class DynamoDbResource:
-    def __init__(self, table: str):
-        dynamo_db = boto3.resource("dynamodb")
-        self.table = dynamo_db.Table(table)
+
+class DynamoTableInteractor:
+    def __init__(self, table: DynamoTable):
+        self.table = table
 
     def save_test_started(
         self,
@@ -23,20 +23,20 @@ class DynamoDbResource:
         }
         if java_opts:
             item["JavaOpts"] = java_opts
-        self.table.put_item(Item=item)
+        self.table.put_item(item)
 
     def update_test_ended(self, id: str, end_time: datetime, test_results_url: str):
         self.table.update_item(
-            Key={"TestId": id},
-            UpdateExpression="SET EndTime=:end, TestResultsUrl=:res",
-            ExpressionAttributeValues={
+            {"TestId": id},
+            "SET EndTime=:end, TestResultsUrl=:res",
+            {
                 ":end": end_time.isoformat(),
                 ":res": test_results_url,
             },
         )
 
     def get_by_id(self, id: str):
-        resp = self.table.get_item(Key={"TestId": id})
+        resp = self.table.get_item({"TestId": id})
         if "Item" in resp:
             return resp["Item"]
         else:

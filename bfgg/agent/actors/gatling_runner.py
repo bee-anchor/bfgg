@@ -1,15 +1,17 @@
-import threading
+from queue import Queue
+from threading import Thread
 import os
 from concurrent import futures
 import subprocess
 import signal
+
+from bfgg.agent import AgentUtils
 from bfgg.agent.actors.log_follower import LogFollower
 from bfgg.utils.agentstatus import AgentStatus
 from bfgg.utils.logging import logger
-from bfgg.agent.model import handle_state_change
 
 
-class GatlingRunner(threading.Thread):
+class GatlingRunner(Thread):
     def __init__(
         self,
         gatling_location: str,
@@ -19,8 +21,11 @@ class GatlingRunner(threading.Thread):
         project: str,
         test: str,
         java_opts: str,
+        outgoing_queue: Queue,
+        log_send_interval: float,
+        agent_utils: AgentUtils,
     ):
-        threading.Thread.__init__(self)
+        super().__init__()
         self.logger = logger
         self.gatling_location = gatling_location
         self.tests_location = tests_location
@@ -29,6 +34,9 @@ class GatlingRunner(threading.Thread):
         self.project = project
         self.test = test
         self.java_opts = java_opts
+        self.outgoing_queue = outgoing_queue
+        self.agent_utils = agent_utils
+        self.log_send_interval = log_send_interval
         self.stop_runner = False
         self.test_process = None
         self.log_follower = None
@@ -99,13 +107,15 @@ class GatlingRunner(threading.Thread):
                 f"Gatling output ended unexpectedly, gatling process terminated: {self.test}"
             )
         elif f"Simulation {self.test} started".encode("utf-8") in line:
-            handle_state_change(
+            self.agent_utils.handle_state_change(
                 status=AgentStatus.TEST_RUNNING,
                 test_running=f"{self.project} - {self.test}",
                 test_id=self.test_id,
             )
             self.logger.info(f"Test {self.test} started")
-            self.log_follower = LogFollower(self.results_folder)
+            self.log_follower = LogFollower(
+                self.results_folder, self.outgoing_queue, self.log_send_interval
+            )
             self.log_follower.name = f"LogFollower_{self.test}"
             self.log_follower.daemon = True
             self.log_follower.start()
@@ -115,7 +125,7 @@ class GatlingRunner(threading.Thread):
             )
         elif f"Simulation {self.test} completed".encode("utf-8") in line:
             self._stop_processes()
-            handle_state_change(
+            self.agent_utils.handle_state_change(
                 status=AgentStatus.TEST_FINISHED, test_running="", test_id=self.test_id
             )
             self.logger.info(f"Test {self.test} finished!")
@@ -140,12 +150,16 @@ class GatlingRunner(threading.Thread):
 
     def _stop_test(self):
         self._stop_processes()
-        handle_state_change(status=AgentStatus.TEST_STOPPED, test_running="")
+        self.agent_utils.handle_state_change(
+            status=AgentStatus.TEST_STOPPED, test_running=""
+        )
         self.logger.info("Test manually stopped")
         self.is_running = False
 
     def _handle_error(self, msg):
         self._stop_processes()
-        handle_state_change(status=AgentStatus.ERROR, test_running="", extra_info=msg)
+        self.agent_utils.handle_state_change(
+            status=AgentStatus.ERROR, test_running="", extra_info=msg
+        )
         self.logger.error(msg)
         self.is_running = False

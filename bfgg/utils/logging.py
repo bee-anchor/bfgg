@@ -1,8 +1,6 @@
 import logging
-from dotenv import load_dotenv
-import os
 
-load_dotenv()
+from bfgg.config import config
 
 
 def new_logger():
@@ -15,7 +13,7 @@ def new_logger():
     )
     if not len(log.handlers):
         ch = logging.StreamHandler()
-        ch.setLevel(os.getenv("LOG_LEVEL"))
+        ch.setLevel(config.log_level)
         ch.setFormatter(formatter)
         log.addHandler(ch)
     return log

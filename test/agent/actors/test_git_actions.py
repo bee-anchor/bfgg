@@ -1,5 +1,7 @@
 from pytest import fixture
 from unittest.mock import call
+
+from bfgg.agent import AgentUtils
 from bfgg.agent.actors.git_actions import clone_repo
 from bfgg.utils.agentstatus import AgentStatus
 
@@ -7,22 +9,22 @@ from bfgg.utils.agentstatus import AgentStatus
 class TestGitActions:
     @fixture()
     def mocks(self, mocker):
-        state_mock = mocker.patch("bfgg.agent.actors.git_actions.handle_state_change")
+        agent_utils = mocker.MagicMock(spec=AgentUtils)
         subprocess_mock = mocker.patch("subprocess.Popen")
-        yield state_mock, subprocess_mock
+        yield agent_utils, subprocess_mock
 
     def test_clone_repo_directory_doesnt_exist(self, mocks):
-        state_mock, subprocess_mock = mocks
+        agent_utils, subprocess_mock = mocks
         subprocess_mock.side_effect = FileNotFoundError
-        clone_repo("git@git.org:foo/bar.git", "a/b/c")
-        state_mock.assert_called_once_with(
+        clone_repo("git@git.org:foo/bar.git", "a/b/c", agent_utils)
+        agent_utils.handle_state_change.assert_called_once_with(
             status=AgentStatus.ERROR,
             extra_info="Exception found when cloning. Please make sure the directory "
             "for cloning repositories exists.",
         )
 
     def test_clone_repo_success(self, mocks):
-        state_mock, subprocess_mock = mocks
+        agent_utils, subprocess_mock = mocks
         subprocess_mock.return_value.communicate.return_value = (
             b"stdout",
             b"""
@@ -33,9 +35,9 @@ class TestGitActions:
                 Resolving deltas: 100% (516/516), done.
             """,
         )
-        clone_repo("git@git.org:foo/bar.git", "a/b/c")
-        assert 2 == state_mock.call_count
-        state_mock.assert_has_calls(
+        clone_repo("git@git.org:foo/bar.git", "a/b/c", agent_utils)
+        assert 2 == agent_utils.handle_state_change.call_count
+        agent_utils.handle_state_change.assert_has_calls(
             [
                 call(status=AgentStatus.CLONING),
                 call(status=AgentStatus.AVAILABLE, cloned_repo={"bar"}),
@@ -43,7 +45,7 @@ class TestGitActions:
         )
 
     def test_clone_repo_already_exists(self, mocks):
-        state_mock, subprocess_mock = mocks
+        agent_utils, subprocess_mock = mocks
         subprocess_mock.return_value.communicate.side_effect = [
             (
                 b"stdout",
@@ -60,9 +62,9 @@ class TestGitActions:
                 """,
             ),
         ]
-        clone_repo("git@git.org:foo/bar.git", "a/b/c")
-        assert 2 == state_mock.call_count
-        state_mock.assert_has_calls(
+        clone_repo("git@git.org:foo/bar.git", "a/b/c", agent_utils)
+        assert 2 == agent_utils.handle_state_change.call_count
+        agent_utils.handle_state_change.assert_has_calls(
             [
                 call(status=AgentStatus.CLONING),
                 call(status=AgentStatus.AVAILABLE, cloned_repo={"bar"}),
@@ -70,7 +72,7 @@ class TestGitActions:
         )
 
     def test_clone_repo_error(self, mocks):
-        state_mock, subprocess_mock = mocks
+        agent_utils, subprocess_mock = mocks
         subprocess_mock.return_value.communicate.return_value = (
             b"stdout",
             b"""
@@ -82,9 +84,9 @@ class TestGitActions:
             """,
         )
 
-        clone_repo("git@git.org:foo/bar.git", "a/b/c")
-        assert 2 == state_mock.call_count
-        state_mock.assert_has_calls(
+        clone_repo("git@git.org:foo/bar.git", "a/b/c", agent_utils)
+        assert 2 == agent_utils.handle_state_change.call_count
+        agent_utils.handle_state_change.assert_has_calls(
             [
                 call(status=AgentStatus.CLONING),
                 call(

@@ -4,13 +4,13 @@ import zmq
 import time
 from queue import Empty
 from bfgg.utils.messages import OutgoingMessageGrouped, OutgoingMessageTargeted
-from bfgg.controller.model import State
+from bfgg.controller.state import State
 from bfgg.utils.logging import logger
 
 
 class OutgoingMessageHandler(threading.Thread):
-    def __init__(self, context: zmq.Context, port: str, state: State, outgoing_queue):
-        threading.Thread.__init__(self)
+    def __init__(self, context: zmq.Context, port: int, state: State, outgoing_queue):
+        super().__init__()
         self.logger = logger
         self.context = context
         self.port = port

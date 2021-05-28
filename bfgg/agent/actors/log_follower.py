@@ -1,18 +1,22 @@
-import threading
+from threading import Thread
 import os
 from datetime import datetime
+from queue import Queue
 from time import sleep
 from pygtail import Pygtail
 from bfgg.utils.messages import OutgoingMessage, LOG
 from bfgg.utils.logging import logger
-from bfgg.agent.model import OUTGOING_QUEUE, LOG_SEND_INTERVAL
 
 
-class LogFollower(threading.Thread):
-    def __init__(self, results_folder: str):
-        threading.Thread.__init__(self)
+class LogFollower(Thread):
+    def __init__(
+        self, results_folder: str, outgoing_queue: Queue, log_send_interval: float
+    ):
+        super().__init__()
         self.logger = logger
         self.results_folder = results_folder
+        self.outgoing_queue = outgoing_queue
+        self.log_send_interval = log_send_interval
         self.stop_thread = False
 
     def _get_current_logfile(self):
@@ -46,10 +50,10 @@ class LogFollower(threading.Thread):
         self.logger.info(f"Following log file: {current_log_file}")
         log_file = Pygtail(current_log_file, full_lines=True)
         while True:
-            sleep(LOG_SEND_INTERVAL)
+            sleep(self.log_send_interval)
             logs = log_file.read()
             if logs:
-                OUTGOING_QUEUE.put(OutgoingMessage(LOG, logs.encode("utf-8")))
+                self.outgoing_queue.put(OutgoingMessage(LOG, logs.encode("utf-8")))
                 self.logger.debug("Log queued")
             if self.stop_thread:
                 self.logger.debug("Stopping log follower")

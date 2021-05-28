@@ -2,8 +2,8 @@ import os
 import shutil
 import subprocess
 from datetime import datetime
-import boto3
 from bfgg.utils.logging import logger
+from bfgg.aws import S3Bucket
 
 
 class ReportHandler:
@@ -11,15 +11,13 @@ class ReportHandler:
         self,
         results_folder: str,
         gatling_location,
-        s3_bucket: str,
-        s3_region: str,
+        s3_bucket: S3Bucket,
         group: str,
     ):
         self.logger = logger
         self.results_folder = os.path.join(results_folder, group)
         self.gatling_location = gatling_location
         self.s3_bucket = s3_bucket
-        self.s3_region = s3_region
 
     @staticmethod
     def _content_type_from_file(filename: str):
@@ -60,7 +58,6 @@ class ReportHandler:
 
     def _upload_results(self):
         folder = datetime.now().strftime("%Y%m%d_%H%M")
-        s3 = boto3.resource("s3", region_name=self.s3_region)
         try:
             for path, _, files in os.walk(self.results_folder):
                 for file in files:
@@ -74,10 +71,10 @@ class ReportHandler:
                         "ACL": "private",
                         "ContentType": self._content_type_from_file(file),
                     }
-                    s3.Object(self.s3_bucket, filename).upload_file(
-                        Filename=os.path.join(path, file), ExtraArgs=extra_args
+                    self.s3_bucket.upload_file(
+                        filename, os.path.join(path, file), extra_args=extra_args
                     )
-            url = f"https://{self.s3_bucket}.s3.amazonaws.com/{folder}/index.html"
+            url = f"https://{self.s3_bucket.bucket_name}.s3.amazonaws.com/{folder}/index.html"
             self.logger.info(url)
             shutil.rmtree(self.results_folder)
             return url

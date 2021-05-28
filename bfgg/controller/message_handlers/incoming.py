@@ -1,28 +1,30 @@
 import threading
 import zmq
 from datetime import datetime
-from bfgg.controller.model import State, DYNAMO_DB
+from bfgg.controller.state import State
 import pickle
 from bfgg.utils.messages import LOG, STATUS, BYE, START_TEST, FINISHED_TEST
 from bfgg.utils.logging import logger
 from bfgg.controller.actors.report_handler import ReportHandler
 from bfgg.controller.actors.metrics_handler import MetricsHandler
+from bfgg.controller.actors.dynamodb_resource import DynamoTableInteractor
 from bfgg.utils.helpers import create_or_empty_results_folder
 from bfgg.utils.agentstatus import AgentStatus
+from bfgg.aws import S3Bucket
 
 
 class IncomingMessageHandler(threading.Thread):
     def __init__(
         self,
         context: zmq.Context,
-        port: str,
+        port: int,
         results_folder: str,
         state: State,
         gatling_location: str,
-        s3_bucket: str,
-        s3_region: str,
+        s3_bucket: S3Bucket,
+        dynamodb: DynamoTableInteractor,
     ):
-        threading.Thread.__init__(self)
+        super().__init__()
         self.logger = logger
         self.context = context
         self.port = port
@@ -30,9 +32,9 @@ class IncomingMessageHandler(threading.Thread):
         self.state = state
         self.gatling_location = gatling_location
         self.s3_bucket = s3_bucket
-        self.s3_region = s3_region
         self.metrics_handler = MetricsHandler(results_folder)
         self.handler = self.context.socket(zmq.PULL)
+        self.dynamodb = dynamodb
 
     def run(self):
         self.handler.bind(f"tcp://*:{self.port}")
@@ -68,7 +70,6 @@ class IncomingMessageHandler(threading.Thread):
                     self.results_folder,
                     self.gatling_location,
                     self.s3_bucket,
-                    self.s3_region,
                     str_group,
                 ).run()
-                DYNAMO_DB.update_test_ended(test_id, end_time, results_url)
+                self.dynamodb.update_test_ended(test_id, end_time, results_url)

@@ -109,7 +109,7 @@ These can be overridden by environment variables, and some will need to be overr
 
 ### Prereqs
 
-* Python >=3.7
+* Python >=3.9
 * Java 8
 * Git
 * Gatling (https://gatling.io/open-source - download and unzip somewhere)
@@ -212,7 +212,9 @@ POST /results
 ## Test and Lint
 
 `make run_tests` - run bfgg unit tests
+
 `make lint` - lint the python code
+
 `cd bfgg-site && npx eslint --ext .jsx .` - lint the React site code
 
 

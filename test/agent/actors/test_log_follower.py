@@ -1,10 +1,24 @@
+from dataclasses import dataclass
+from queue import Queue
+from unittest import mock
+
+from pytest import fixture
+
 from bfgg.agent.actors.log_follower import LogFollower, os
 
 results_folder = "/results"
 folders = ["A", "B", "C", "D"]
 
 
-def test_log_follower_get_current_logfile(mocker):
+@fixture
+def setup():
+    outgoing_queue = mock.create_autospec(Queue)
+    log_follower = LogFollower(results_folder, outgoing_queue, 0.1)
+    return log_follower, outgoing_queue
+
+
+def test_log_follower_get_current_logfile(setup, mocker):
+    log_follower, _ = setup
     os_mock = mocker.patch(
         "bfgg.agent.actors.log_follower.os",
         **{
@@ -22,7 +36,7 @@ def test_log_follower_get_current_logfile(mocker):
         **{"now.return_value.timestamp.return_value": 5},
     )
 
-    result = LogFollower(results_folder)._get_current_logfile()
+    result = log_follower._get_current_logfile()
 
     mock_max.assert_called_once_with(
         list(map(lambda x: f"{results_folder}/{x}", folders[:2])),
@@ -31,7 +45,8 @@ def test_log_follower_get_current_logfile(mocker):
     assert f"{folders[0]}/simulation.log" == result
 
 
-def test_log_follower_get_current_logfile_folder_is_old(mocker):
+def test_log_follower_get_current_logfile_folder_is_old(setup, mocker):
+    log_follower, _ = setup
     mocker.patch(
         "bfgg.agent.actors.log_follower.os",
         **{
@@ -59,13 +74,14 @@ def test_log_follower_get_current_logfile_folder_is_old(mocker):
     )
     mocker.patch("bfgg.agent.actors.log_follower.sleep")
 
-    result = LogFollower(results_folder)._get_current_logfile()
+    result = log_follower._get_current_logfile()
 
     assert 2 == mock_max.call_count
     assert f"{folders[0]}/simulation.log" == result
 
 
-def test_log_follower_get_current_logfile_folder_doesnt_exist(mocker):
+def test_log_follower_get_current_logfile_folder_doesnt_exist(setup, mocker):
+    log_follower, _ = setup
     mocker.patch(
         "bfgg.agent.actors.log_follower.os",
         **{
@@ -84,7 +100,7 @@ def test_log_follower_get_current_logfile_folder_doesnt_exist(mocker):
     )
     mocker.patch("bfgg.agent.actors.log_follower.sleep")
 
-    result = LogFollower(results_folder)._get_current_logfile()
+    result = log_follower._get_current_logfile()
 
     assert 2 == mock_max.call_count
     assert f"{folders[0]}/simulation.log" == result
