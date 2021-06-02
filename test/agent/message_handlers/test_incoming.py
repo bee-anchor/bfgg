@@ -5,7 +5,7 @@ from unittest import mock
 from pytest import fixture
 from zmq import Context
 
-from bfgg.agent import AgentUtils
+from bfgg.agent.utils import AgentUtils
 from bfgg.agent.message_handlers.incoming import IncomingMessageHandler
 from bfgg.utils.messages import CLONE, START_TEST, STOP_TEST
 

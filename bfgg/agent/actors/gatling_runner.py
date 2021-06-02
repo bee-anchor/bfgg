@@ -5,7 +5,7 @@ from concurrent import futures
 from queue import Queue
 from threading import Thread
 
-from bfgg.agent import AgentUtils
+from bfgg.agent.utils import AgentUtils
 from bfgg.agent.actors.log_follower import LogFollower
 from bfgg.utils.agentstatus import AgentStatus
 from bfgg.utils.logging import logger

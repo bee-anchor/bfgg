@@ -5,7 +5,8 @@ from unittest import mock
 from pytest import fixture
 from zmq import Context
 
-from bfgg.agent import State
+
+from bfgg.agent.state import State
 from bfgg.agent.message_handlers.outgoing import OutgoingMessageHandler
 from bfgg.utils.messages import BYE
 

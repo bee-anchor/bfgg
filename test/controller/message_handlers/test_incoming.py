@@ -6,7 +6,8 @@ from pytest import fixture
 from zmq import Context
 
 from bfgg.aws import S3Bucket
-from bfgg.controller import DynamoTableInteractor, State
+from bfgg.controller.actors.dynamodb_resource import DynamoTableInteractor
+from bfgg.controller.state import State
 from bfgg.controller.message_handlers.incoming import IncomingMessageHandler
 from bfgg.utils.agentstatus import AgentStatus
 from bfgg.utils.messages import BYE, FINISHED_TEST, LOG, START_TEST, STATUS

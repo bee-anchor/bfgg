@@ -5,7 +5,9 @@ from unittest import mock
 
 from pytest import fixture
 
-from bfgg.controller import DynamoTableInteractor, State, create_app
+from bfgg.controller.actors.dynamodb_resource import DynamoTableInteractor
+from bfgg.controller.state import State
+from bfgg.controller.__init__ import create_app
 from bfgg.utils.messages import CLONE, START_TEST, STOP_TEST, OutgoingMessageGrouped
 
 

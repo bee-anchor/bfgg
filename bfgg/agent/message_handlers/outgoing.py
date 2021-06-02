@@ -4,7 +4,7 @@ from queue import Queue
 
 from zmq import PUSH, Context
 
-from bfgg.agent import State
+from bfgg.agent.state import State
 from bfgg.utils.logging import logger
 from bfgg.utils.messages import BYE, OutgoingMessage
 
