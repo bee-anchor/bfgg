@@ -9,6 +9,7 @@ from bfgg.agent.message_handlers.outgoing import OutgoingMessageHandler
 from bfgg.agent.state import State
 from bfgg.agent.utils import AgentUtils, get_identity
 from bfgg.config import Config, config
+from bfgg.utils.logging import setup_logger
 
 __context = Context()
 __state = State(Lock())
@@ -23,6 +24,7 @@ def create_agent(
     state_queue: Queue = __state_queue,
     context: Context = __context,
 ):
+    setup_logger()
     if config_.agent_identity is None:
         identity = get_identity(config_.controller_host)
     else:

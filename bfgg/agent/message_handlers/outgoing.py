@@ -1,11 +1,11 @@
 import atexit
 import threading
 from queue import Queue
+import logging
 
 from zmq import PUSH, Context
 
 from bfgg.agent.state import State
-from bfgg.utils.logging import logger
 from bfgg.utils.messages import BYE, OutgoingMessage
 
 
@@ -18,6 +18,7 @@ class OutgoingMessageHandler(threading.Thread):
         controller_host: str,
         port: int,
         identity: bytes,
+        logger=logging.getLogger(__name__),
     ):
         super().__init__()
         self.logger = logger

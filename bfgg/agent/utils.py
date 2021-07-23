@@ -1,12 +1,14 @@
 import os
 import socket
 from queue import Queue
+import logging
 
 from bfgg.agent.state import StateData
 from bfgg.config import Config
 from bfgg.utils.agentstatus import AgentStatus
-from bfgg.utils.logging import logger
 from bfgg.utils.messages import FINISHED_TEST, START_TEST, OutgoingMessage
+
+logger = logging.getLogger(__name__)
 
 
 def get_identity(controller_host):
@@ -54,3 +56,13 @@ class AgentUtils:
     def ensure_results_folder(self):
         if not os.path.exists(self.config.results_folder):
             os.mkdir(self.config.results_folder)
+
+    def ensure_tests_folder(self):
+        logger.info(
+            f"checking for tests folder in {os.path.abspath(self.config.tests_location)}"
+        )
+        if not os.path.exists(os.path.abspath(self.config.tests_location)):
+            logger.info(
+                f"creating tests folder in {os.path.abspath(self.config.tests_location)}"
+            )
+            os.mkdir(os.path.abspath(self.config.tests_location))

@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from queue import Queue
 from uuid import uuid4
@@ -5,6 +6,7 @@ from uuid import uuid4
 from flask import Blueprint, jsonify, request
 from marshmallow import EXCLUDE, ValidationError
 
+from bfgg.aws import S3Bucket
 from bfgg.config import Config
 from bfgg.controller.actors.dynamodb_resource import DynamoTableInteractor
 from bfgg.controller.actors.report_handler import ReportHandler
@@ -17,7 +19,6 @@ from bfgg.controller.api.api_schemas import (
 )
 from bfgg.controller.state import State
 from bfgg.utils.helpers import create_or_empty_results_folder
-from bfgg.utils.logging import logger
 from bfgg.utils.messages import (
     CLONE,
     GROUP,
@@ -29,7 +30,12 @@ from bfgg.utils.messages import (
 
 
 def blueprint(
-    config: Config, state: State, outgoing_queue: Queue, dynamodb: DynamoTableInteractor
+    config: Config,
+    state: State,
+    outgoing_queue: Queue,
+    dynamodb: DynamoTableInteractor,
+    s3_bucket: S3Bucket,
+    logger=logging.getLogger(__name__),
 ) -> Blueprint:
     bp = Blueprint("root", __name__)
     bad_request = 400
@@ -109,9 +115,10 @@ def blueprint(
         getter = ReportHandler(
             config.results_folder,
             config.gatling_location,
-            config.s3_bucket,
+            s3_bucket,
             config.s3_region,
-            group=grp,
+            grp,
+            config.report_url_base,
         )
         url = getter.run()
         return {"Results": url}

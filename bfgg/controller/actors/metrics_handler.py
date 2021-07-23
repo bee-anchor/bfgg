@@ -1,15 +1,20 @@
+import logging
 import os
 
-from prometheus_client import Counter, Histogram
+from prometheus_client import Counter, Histogram, Gauge
 
 from bfgg.utils.helpers import ip_to_log_filename
-from bfgg.utils.logging import logger
 
 
 class MetricsHandler:
-    def __init__(self, results_folder: str):
+    def __init__(self, results_folder: str, logger=logging.getLogger(__name__)):
         self.logger = logger
         self.results_folder = results_folder
+        self.current_users_count = Gauge(
+            "gatling_current_users",
+            "Number of current users",
+            labelnames=["population", "group"],
+        )
         self.total_users_count = Counter(
             "gatling_total_users",
             "Total number of users",
@@ -50,15 +55,14 @@ class MetricsHandler:
         self.logger.debug("Received log message")
         log = log.decode("utf-8")
         group_str = group.decode("utf-8")
+        file_path = os.path.join(
+            self.results_folder,
+            group_str,
+            ip_to_log_filename(identity.decode("utf-8")),
+        )
         try:
-            with open(
-                os.path.join(
-                    self.results_folder,
-                    group_str,
-                    ip_to_log_filename(identity.decode("utf-8")),
-                ),
-                "a",
-            ) as f:
+            self.logger.debug(f"Saving log to {file_path}")
+            with open(file_path, "a") as f:
                 f.write(log)
         except Exception as e:
             self.logger.error(e)
@@ -73,7 +77,6 @@ class MetricsHandler:
             if log_line.startswith("REQUEST"):
                 (
                     type,
-                    iteration,
                     _,
                     name,
                     start_timestamp,
@@ -101,12 +104,20 @@ class MetricsHandler:
                 (
                     type,
                     population,
-                    user_num,
                     start_or_end,
-                    start_timestamp,
-                    end_timestamp,
+                    timestamp,
                 ) = log_line.split("\t")
-                self.total_users_count.labels(population=population, group=group).inc()
+                if start_or_end == "START":
+                    self.total_users_count.labels(
+                        population=population, group=group
+                    ).inc()
+                    self.current_users_count.labels(
+                        population=population, group=group
+                    ).inc()
+                elif start_or_end == "END":
+                    self.current_users_count.labels(
+                        population=population, group=group
+                    ).dec()
             elif log_line.startswith("ERROR"):
                 self.total_errors_count.labels(group=group).inc()
         except Exception as e:

@@ -1,10 +1,10 @@
+import logging
 import os
 import shutil
 import subprocess
 from datetime import datetime
 
 from bfgg.aws import S3Bucket
-from bfgg.utils.logging import logger
 
 
 class ReportHandler:
@@ -14,11 +14,14 @@ class ReportHandler:
         gatling_location,
         s3_bucket: S3Bucket,
         group: str,
+        report_url_base: str,
+        logger=logging.getLogger(__name__),
     ):
         self.logger = logger
         self.results_folder = os.path.join(results_folder, group)
         self.gatling_location = gatling_location
         self.s3_bucket = s3_bucket
+        self.report_url_base = report_url_base
 
     @staticmethod
     def _content_type_from_file(filename: str):
@@ -75,7 +78,7 @@ class ReportHandler:
                     self.s3_bucket.upload_file(
                         filename, os.path.join(path, file), extra_args=extra_args
                     )
-            url = f"https://{self.s3_bucket.bucket_name}.s3.amazonaws.com/{folder}/index.html"
+            url = f"{self.report_url_base}/{folder}/index.html"
             self.logger.info(url)
             shutil.rmtree(self.results_folder)
             return url

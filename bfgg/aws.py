@@ -4,8 +4,19 @@ import boto3
 
 
 class DynamoTable:
-    def __init__(self, table_name: str, region_name: str, endpoint_url: str = None):
-        dynamo_db = boto3.resource(
+    def __init__(
+        self,
+        table_name: str,
+        region_name: str,
+        aws_access_key_id: str = None,
+        aws_secret_access_key: str = None,
+        endpoint_url: str = None,
+    ):
+        session = boto3.session.Session(
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+        )
+        dynamo_db = session.resource(
             "dynamodb", region_name=region_name, endpoint_url=endpoint_url
         )
         self.table = dynamo_db.Table(table_name)
@@ -31,12 +42,23 @@ class DynamoTable:
 
     def scan(self):
         resp = self.table.scan()
-        return resp["items"]
+        return resp["Items"]
 
 
 class S3Bucket:
-    def __init__(self, bucket_name: str, region_name: str, endpoint_url: str = None):
-        s3 = boto3.resource("s3", region_name=region_name, endpoint_url=endpoint_url)
+    def __init__(
+        self,
+        bucket_name: str,
+        region_name: str,
+        aws_access_key_id: str = None,
+        aws_secret_access_key: str = None,
+        endpoint_url: str = None,
+    ):
+        session = boto3.session.Session(
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+        )
+        s3 = session.resource("s3", region_name=region_name, endpoint_url=endpoint_url)
         self.bucket_name = bucket_name
         self.bucket = s3.Bucket(bucket_name)
 

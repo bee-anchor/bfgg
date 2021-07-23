@@ -1,14 +1,15 @@
 import os
 import signal
 import subprocess
-from concurrent import futures
+from collections import deque
 from queue import Queue
 from threading import Thread
+from time import sleep
+import logging
 
 from bfgg.agent.utils import AgentUtils
 from bfgg.agent.actors.log_follower import LogFollower
 from bfgg.utils.agentstatus import AgentStatus
-from bfgg.utils.logging import logger
 
 
 class GatlingRunner(Thread):
@@ -24,6 +25,7 @@ class GatlingRunner(Thread):
         outgoing_queue: Queue,
         log_send_interval: float,
         agent_utils: AgentUtils,
+        logger=logging.getLogger(__name__),
     ):
         super().__init__()
         self.logger = logger
@@ -80,33 +82,32 @@ class GatlingRunner(Thread):
             )
             self.test_process = test_process
             return test_process
-        except FileNotFoundError:
+        except FileNotFoundError as e:
             self._handle_error(
-                f"FileNotFoundError - {self.tests_location}/{self.project}: Check project requested"
+                f"{str(e)}\nCheck project requested OR configured gatling location"
             )
 
     def _handle_process(self, test_process):
-        executor = futures.ThreadPoolExecutor(max_workers=1)
+        latest_lines = deque(maxlen=10)
         while self.is_running:
-            if self.stop_runner:
-                self._stop_test()
-            line_getter = executor.submit(test_process.stdout.readline)
-            try:
-                line = line_getter.result(timeout=30)
-            except futures.TimeoutError:
-                self._handle_error(
-                    "No output from gatling for 30s, gatling process terminated"
-                )
-            else:
+            sleep(0.5)
+            line = test_process.stdout.readline()
+            while len(line) > 0:
+                line = line.decode("utf-8")
+                latest_lines.append(line)
                 self._handle_process_output(line)
+                line = test_process.stdout.readline()
+            if self.is_running and self.stop_runner:
+                self._stop_test()
+            if self.is_running and test_process.poll() is not None:
+                log_lines = "\n".join(latest_lines)
+                self._handle_error(
+                    f"Gatling process ended unexpectedly, last log lines:\n {log_lines}"
+                )
 
     def _handle_process_output(self, line):
-        self.logger.debug(line.decode("utf-8").rstrip())
-        if line == b"":
-            self._handle_error(
-                f"Gatling output ended unexpectedly, gatling process terminated: {self.test}"
-            )
-        elif f"Simulation {self.test} started".encode("utf-8") in line:
+        self.logger.debug(line.rstrip())
+        if f"Simulation {self.test} started" in line:
             self.agent_utils.handle_state_change(
                 status=AgentStatus.TEST_RUNNING,
                 test_running=f"{self.project} - {self.test}",
@@ -119,11 +120,11 @@ class GatlingRunner(Thread):
             self.log_follower.name = f"LogFollower_{self.test}"
             self.log_follower.daemon = True
             self.log_follower.start()
-        elif b"No tests to run for Gatling" in line:
+        elif "No tests to run for Gatling" in line:
             self._handle_error(
                 f"No test was run, check the test class provided: {self.test}"
             )
-        elif f"Simulation {self.test} completed".encode("utf-8") in line:
+        elif f"Simulation {self.test} completed" in line:
             self._stop_processes()
             self.agent_utils.handle_state_change(
                 status=AgentStatus.TEST_FINISHED, test_running="", test_id=self.test_id
@@ -132,6 +133,7 @@ class GatlingRunner(Thread):
 
     def run(self):
         test_process = self._start_test_process()
+        os.set_blocking(test_process.stdout.fileno(), False)
         self.is_running = True
         self._handle_process(test_process)
 
@@ -141,9 +143,7 @@ class GatlingRunner(Thread):
                 os.killpg(os.getpgid(self.test_process.pid), signal.SIGTERM)
                 self.test_process.terminate()
         except ProcessLookupError:
-            self.logger.warning(
-                "Process has already been terminated - Gatling may have crashed"
-            )
+            self.logger.warning("Process ended unexpectedly - Gatling may have crashed")
         if self.log_follower:
             self.log_follower.stop_thread = True
         self.is_running = False

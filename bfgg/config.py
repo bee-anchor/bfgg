@@ -12,6 +12,7 @@ class Config:
     controller_messaging_port: int
     tests_location: str
     results_folder: str
+    report_url_base: str
     gatling_location: str
     agent_identity: str
     log_send_interval: float
@@ -20,6 +21,8 @@ class Config:
     s3_region: str
     aws_default_region: str
     aws_endpoint_url: str
+    aws_access_key: str
+    aws_secret_access_key: str
 
 
 load_dotenv()
@@ -30,6 +33,7 @@ config = Config(
     getenv("CONTROLLER_MESSAGING_PORT", 9502),
     getenv("TESTS_LOCATION"),
     getenv("RESULTS_FOLDER"),
+    getenv("REPORT_URL_BASE"),
     getenv("GATLING_LOCATION"),
     getenv("AGENT_IDENTITY"),
     getenv("LOG_SEND_INTERVAL", 1),
@@ -38,4 +42,6 @@ config = Config(
     getenv("S3_REGION", "eu-west-1"),
     getenv("AWS_DEFAULT_REGION", "eu-west-1"),
     getenv("AWS_ENDPOINT_URL", None),
+    getenv("AWS_ACCESS_KEY", None),
+    getenv("AWS_SECRET_ACCESS_KEY", None),
 )

@@ -1,30 +1,23 @@
 import os
 import subprocess
+import logging
 
 from bfgg.agent.utils import AgentUtils
 from bfgg.utils.agentstatus import AgentStatus
-from bfgg.utils.logging import logger
 
-logger = logger
+logger = logging.getLogger(__name__)
 
 
 def clone_repo(project: str, tests_location: str, agent_utils: AgentUtils):
     project_name = project[project.find("/") + 1 : project.find(".git")]
+    agent_utils.ensure_tests_folder()
     logger.info(f"Getting {project}")
-    try:
-        resp = subprocess.Popen(
-            ["git", "clone", project, "--progress"],
-            cwd=tests_location,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-    except FileNotFoundError:
-        logger.error("Directory for cloning doesn't exist")
-        agent_utils.handle_state_change(
-            status=AgentStatus.ERROR,
-            extra_info="Exception found when cloning. Please make sure the directory for cloning repositories exists.",
-        )
-        return
+    resp = subprocess.Popen(
+        ["git", "clone", project, "--progress"],
+        cwd=tests_location,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
     agent_utils.handle_state_change(status=AgentStatus.CLONING)
     stdout, stderror = resp.communicate()
     stdout = stdout.decode("utf-8")
@@ -56,12 +49,13 @@ def clone_repo(project: str, tests_location: str, agent_utils: AgentUtils):
     elif "fatal: Could not read from remote repository" in stderror:
         agent_utils.handle_state_change(
             status=AgentStatus.ERROR,
-            extra_info="Could not read from remote repository. Check agent for further details.",
+            extra_info=stderror,
         )
-    _log_if_present(stdout)
-    _log_if_present(stderror)
+        logger.error(stderror)
+    _debug_log_if_present(stdout)
+    _debug_log_if_present(stderror)
 
 
-def _log_if_present(std):
+def _debug_log_if_present(std):
     if std:
         logger.debug(std)

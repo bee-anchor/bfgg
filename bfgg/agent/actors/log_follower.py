@@ -3,16 +3,20 @@ from datetime import datetime
 from queue import Queue
 from threading import Thread
 from time import sleep
+import logging
 
 from pygtail import Pygtail
 
-from bfgg.utils.logging import logger
 from bfgg.utils.messages import LOG, OutgoingMessage
 
 
 class LogFollower(Thread):
     def __init__(
-        self, results_folder: str, outgoing_queue: Queue, log_send_interval: float
+        self,
+        results_folder: str,
+        outgoing_queue: Queue,
+        log_send_interval: float,
+        logger=logging.getLogger(__name__),
     ):
         super().__init__()
         self.logger = logger

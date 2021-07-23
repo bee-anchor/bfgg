@@ -170,7 +170,7 @@ function AgentsTable(props) {
                     <TableCell align="right">{row.status}</TableCell>
                     <TableCell align="right">{row.cloned_repos}</TableCell>
                     <TableCell align="right">{row.test_running}</TableCell>
-                    <TableCell align="right">{row.extra_info}</TableCell>
+                    <TableCell align="left"><pre>{row.extra_info}</pre></TableCell>
                   </TableRow>
                 );
               })}

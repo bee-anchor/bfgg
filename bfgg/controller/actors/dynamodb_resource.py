@@ -1,6 +1,9 @@
 from datetime import datetime
+import logging
 
 from bfgg.aws import DynamoTable
+
+logger = logging.getLogger(__name__)
 
 
 class DynamoTableInteractor:
@@ -36,12 +39,7 @@ class DynamoTableInteractor:
         )
 
     def get_by_id(self, id: str):
-        resp = self.table.get_item({"TestId": id})
-        if "Item" in resp:
-            return resp["Item"]
-        else:
-            return None
+        return self.table.get_item({"TestId": id})
 
     def get_all(self):
-        resp = self.table.scan()
-        return resp["Items"]
+        return self.table.scan()

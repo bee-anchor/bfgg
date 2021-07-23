@@ -1,3 +1,4 @@
+import logging
 import threading
 from dataclasses import dataclass
 from datetime import datetime
@@ -5,7 +6,6 @@ from typing import Dict, List
 
 from bfgg.agent.state import StateData
 from bfgg.utils.agentstatus import AgentStatus
-from bfgg.utils.logging import logger
 
 
 @dataclass
@@ -13,7 +13,7 @@ class Agent:
     state: StateData
     last_heard_from: int
 
-    def update(self, new_state: StateData):
+    def update(self, new_state: StateData, logger=logging.getLogger(__name__)):
         self.state = new_state
         self.last_heard_from = int(datetime.now().timestamp())
         logger.debug(f"Updated agent state to {self.state} {self.last_heard_from}")
@@ -29,9 +29,10 @@ class Agent:
 
 
 class State:
-    def __init__(self, lock: threading.Lock):
+    def __init__(self, lock: threading.Lock, logger=logging.getLogger(__name__)):
         self.lock = lock
         self._current_agents: Dict[bytes, Agent] = {}
+        self.logger = logger
 
     @property
     def connected_agents(self) -> List[bytes]:
@@ -48,7 +49,7 @@ class State:
         with self.lock:
             if agent in self._current_agents:
                 self._current_agents.pop(agent)
-                logger.info(f"{agent} disconnected")
+                self.logger.info(f"{agent} disconnected")
 
     def update_agent_state(self, agent: bytes, state: StateData):
         with self.lock:
@@ -56,14 +57,14 @@ class State:
                 self._current_agents[agent] = Agent(
                     state, int(datetime.now().timestamp())
                 )
-                logger.info(f"{agent} connected, state: {state}")
+                self.logger.info(f"{agent} connected, state: {state}")
             else:
                 self._current_agents[agent].update(state)
 
     def update_agent_status(self, agent: bytes, status: AgentStatus):
         with self.lock:
             if agent not in self._current_agents:
-                logger.warning(
+                self.logger.warning(
                     f"Tried to update status to {status.name} for unknown agent {agent}"
                 )
             else:
@@ -124,7 +125,7 @@ class State:
                 # not heard from agent for over 20 seconds, something is wrong....
                 if current_time - info.last_heard_from > 20:
                     self._current_agents.pop(agent)
-                    logger.warning(
+                    self.logger.warning(
                         f"Agent {agent.decode('utf-8')} has not been heard "
                         f"from for a while, removing from connected list"
                     )

@@ -1,12 +1,12 @@
 from queue import Queue
 from threading import Thread
+import logging
 
 from zmq import DEALER, IDENTITY, Context
 
 from bfgg.agent.actors.gatling_runner import GatlingRunner
 from bfgg.agent.actors.git_actions import clone_repo
 from bfgg.agent.utils import AgentUtils
-from bfgg.utils.logging import logger
 from bfgg.utils.messages import CLONE, GROUP, START_TEST, STOP_TEST
 
 
@@ -23,6 +23,7 @@ class IncomingMessageHandler(Thread):
         gatling_location: str,
         outgoing_queue: Queue,
         log_send_interval: float,
+        logger=logging.getLogger(__name__),
     ):
         super().__init__()
         self.identity = identity

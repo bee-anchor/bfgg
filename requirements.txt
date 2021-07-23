@@ -6,6 +6,7 @@ Twisted~=21.2.0
 boto3~=1.17.74
 marshmallow~=3.12.1
 prometheus-client~=0.10.1
+requests~=2.25.1
 pytest~=6.2.4
 pytest-mock~=3.6.1
 pygtail~=0.11.1
