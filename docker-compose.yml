@@ -1,0 +1,62 @@
+services:
+
+  controller:
+    build:
+      context: .
+      dockerfile: bfggController.Dockerfile
+    container_name: bfgg-controller
+    ports:
+      - "8000:8000"
+    environment:
+      - LOG_LEVEL=DEBUG
+      - RESULTS_FOLDER=/opt/bfgg/results
+      - REPORT_URL_BASE=http://bfgg-test-results.localhost:4566
+      - S3_BUCKET=bfgg-test-results
+      - DYNAMODB_TABLE=BfggTests
+      - GATLING_LOCATION=/opt/bfgg/gatling
+      - PYTHONPATH=/opt/bfgg
+      - AWS_ENDPOINT_URL=http://localstack:4566
+      - AWS_ACCESS_KEY=example
+      - AWS_SECRET_ACCESS_KEY=example
+    command: twistd -n web --wsgi run_controller.app --port tcp:8000
+    depends_on:
+      - localstack
+
+  agent:
+    build:
+      context: .
+      dockerfile: bfggAgent.Dockerfile
+    container_name: bfgg-agent
+    environment:
+      - LOG_LEVEL=DEBUG
+      - CONTROLLER_HOST=controller
+      - TESTS_LOCATION=/opt/bfgg/tests
+      - RESULTS_FOLDER=/opt/bfgg/results
+      - GATLING_LOCATION=/opt/bfgg/gatling
+    command: python run_agent.py
+
+  gui:
+    build:
+      context: .
+      dockerfile: bfggWeb.Dockerfile
+    container_name: bfgg-web
+    ports:
+      - "3000:3000"
+    command: npm start
+    depends_on:
+      - controller
+
+  localstack:
+    image: localstack/localstack
+    ports:
+      - "4566:4566"
+      - "4571:4571"
+    environment:
+      - SERVICES=s3,dynamodb
+      - DEFAULT_REGION=eu-west-1
+      - DEBUG=true
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - "${TMPDIR:-/tmp/localstack}:/tmp/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
